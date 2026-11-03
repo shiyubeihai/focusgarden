@@ -800,6 +800,7 @@ function startTimer(){
   if(countOf(todayKey()) >= MAX_PER_DAY){ toast('今天的 15 个已完成'); return; }
   ensureAudio();
   playStart();
+  askNotify();
   timer.running = true;
   timer.endAt = Date.now() + timer.remain;
   saveTimer(); loop(); renderTimer(); requestWakeLock();
@@ -818,6 +819,7 @@ function resetTimer(){
 }
 
 function completeTimer(){
+  var lateBy = timer.endAt ? Math.max(0, Date.now() - timer.endAt) : 0;
   stopLoop();
   timer = { running: false, endAt: 0, remain: POMO_MS };
   clearTimerStore(); releaseWakeLock();
@@ -829,17 +831,19 @@ function completeTimer(){
   }
   var idx = addPom(key, '', Date.now());
   saveDB();
-  playFinish(); buzz([40, 60, 40]);
+  playFinish(); buzz([40, 60, 40]); notifyDone(lateBy);
   renderTimer(); renderAll();
   openSheet(key, idx, false);
   toast('完成 1 个 · 第 ' + (idx + 1) + ' 个');
 }
 
 function ensureAudio(){
-  if(audioCtx){ if(audioCtx.state === 'suspended') audioCtx.resume(); return; }
   try{
-    var AC = window.AudioContext || window.webkitAudioContext;
-    if(AC) audioCtx = new AC();
+    if(!audioCtx){
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if(AC) audioCtx = new AC();
+    }
+    if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
   }catch(e){ audioCtx = null; }
 }
 function beepAt(freq, when, dur, vol){
@@ -851,10 +855,40 @@ function beepAt(freq, when, dur, vol){
   osc.connect(g).connect(audioCtx.destination);
   osc.start(when); osc.stop(when + dur + 0.02);
 }
-function playStart(){ if(!audioCtx) return; try{ beepAt(880, audioCtx.currentTime, 0.14, 0.13); }catch(e){} }
-function playFinish(){
+function playStart(){
+  ensureAudio();
   if(!audioCtx) return;
-  try{ var t0 = audioCtx.currentTime; for(var i = 0; i < 3; i++) beepAt(880, t0 + i * 0.2, 0.13, 0.16); }catch(e){}
+  try{ beepAt(880, audioCtx.currentTime + 0.01, 0.16, 0.16); }catch(e){}
+}
+function playFinish(){
+  ensureAudio();
+  if(!audioCtx) return;
+  try{
+    var t0 = audioCtx.currentTime + 0.02, notes = [784, 988, 1175];
+    for(var i = 0; i < notes.length; i++) beepAt(notes[i], t0 + i * 0.2, 0.18, 0.24);
+  }catch(e){}
+}
+function askNotify(){
+  try{
+    if(!('Notification' in window)) return;
+    if(Notification.permission === 'default'){
+      var p = Notification.requestPermission();
+      if(p && p.catch) p.catch(function(){});
+    }
+  }catch(e){}
+}
+function notifyDone(lateBy){
+  try{
+    if(!('Notification' in window) || Notification.permission !== 'granted') return;
+    if(!document.hidden && lateBy < 5000) return;
+    var n = new Notification('专注结束', {
+      body: '一朵玫瑰开了 · 点开记一笔',
+      icon: 'icons/bloom-192.png',
+      tag: 'focus-done',
+      renotify: true
+    });
+    n.onclick = function(){ try{ window.focus(); n.close(); }catch(e){} };
+  }catch(e){}
 }
 function buzz(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
 
@@ -1413,6 +1447,7 @@ function bind(){
 
   document.addEventListener('visibilitychange', function(){
     if(document.hidden){ releaseWakeLock(); return; }
+    ensureAudio();
     if(timer.running){ tickTimer(); requestWakeLock(); } else { renderTimer(); }
   });
 
