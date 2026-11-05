@@ -1,9 +1,15 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+<!--
+  一刻花开 · 15 分钟专注计时器
+  作者：始于北海
+  单文件网页应用，可自由保存、转发与修改，请保留本行注释。
+-->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="light">
+<meta name="author" content="始于北海">
 <meta name="theme-color" content="#F7FAF7">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -347,6 +353,7 @@
   </section>
 
   <p class="tip" style="text-align:center;margin-top:14px">一刻花开 · 每个番茄钟 15 分钟 · 每日 5 朵达标 · 15 朵封顶</p>
+  <p class="tip" style="text-align:center;margin-top:5px;font-size:10.5px;letter-spacing:.08em">by 始于北海</p>
 </div>
 
 <div class="scrim" id="scrim"></div>
@@ -497,9 +504,10 @@ function termsOfYear(year){
   if(termCache[year]) return termCache[year];
   var map = {};
   var jd0 = julianDay(year, 1, 1) - 2;
+  var jdEnd = julianDay(year + 1, 1, 1) - 1;  /* 只扫到本年末，避免把次年的小寒算进来 */
   var prev = sunLongitude(jd0);
 
-  for(var k = 1; k <= 375; k++){
+  for(var k = 1; jd0 + k <= jdEnd; k++){
     var jd = jd0 + k;
     var lon = sunLongitude(jd);
     var diff = lon - prev;
@@ -1235,7 +1243,7 @@ function download(filename, text, mime){
 function exportJSON(){
   saveDB();
   download('一刻花开-' + todayKey() + '.json', JSON.stringify({
-    app: '一刻花开', schema: 'yike.huakai', version: 1,
+    app: '一刻花开', author: '始于北海', schema: 'yike.huakai', version: 1,
     exportedAt: new Date().toISOString(),
     rule: { minutes: MINUTES, maxPerDay: MAX_PER_DAY, minPerDay: MIN_PER_DAY,
             redFrom: RED_FROM, goldFrom: GOLD_FROM, rainbowFrom: RAINBOW_FROM },
