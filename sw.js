@@ -1,21 +1,26 @@
 /* focusgarden 的 service worker
    策略：缓存优先 + 后台更新（stale-while-revalidate）
    改了页面内容不必动这里，下次打开自动换新；只有换缓存名时才需要改 CACHE */
-const CACHE = 'focusgarden-v5';
+const CACHE = 'focusgarden-v7';
 
 const ASSETS = [
   './',
   './index.html',
   './happy-tomato.html',
   './quarterbloom.html',
+  './xishi.html',
   './manifest-tomato.webmanifest',
   './manifest-bloom.webmanifest',
+  './manifest-xishi.webmanifest',
   './icons/tomato-192.png',
   './icons/tomato-512.png',
   './icons/tomato-180.png',
   './icons/bloom-192.png',
   './icons/bloom-512.png',
-  './icons/bloom-180.png'
+  './icons/bloom-180.png',
+  './icons/xishi-192.png',
+  './icons/xishi-512.png',
+  './icons/xishi-180.png'
 ];
 
 self.addEventListener('install', e => {

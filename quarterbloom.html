@@ -128,11 +128,13 @@
   .dotc.n{background:#D4A01F}
   .dotc.d{background:#E07A6E}
   .dotc.g{background:#A3242E}
+  .dotc.p{background:#8A2E5C}
   .dotc.f{background:var(--red);border-radius:50%}
 
   .badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 7px;
     border-radius:99px;background:var(--red-soft);color:var(--red);font-weight:550}
   .badge.gold{background:#A3242E;color:#fff}
+  .badge.plum{background:#8A2E5C;color:#fff}
   .badge.rain{background:linear-gradient(90deg,#FFE6E6,#FFF6DA,#E4F7E7,#E5EDFF,#F4E8FF);color:#5B4A8A}
   .flower{width:11px;height:11px;display:inline-block;vertical-align:-1px;flex:none}
 
@@ -286,7 +288,7 @@
 
   <section class="card">
     <div class="today-head">
-      <h2>今日玫瑰 <b id="todayCount">0</b><small> / 15</small></h2>
+      <h2>今日玫瑰 <b id="todayCount">0</b><small> / 20</small></h2>
       <div id="todayBadges" style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end"></div>
     </div>
     <div class="slots" id="slots"></div>
@@ -295,6 +297,7 @@
       <span><i class="dotc n"></i>1–5 金黄</span>
       <span><i class="dotc d"></i>6–10 浅红</span>
       <span><i class="dotc g"></i>11–15 深红</span>
+      <span><i class="dotc p"></i>16–20 紫红</span>
       <span><i class="dotc f"></i>满 5 朵开花</span>
     </div>
   </section>
@@ -352,7 +355,7 @@
     <p class="tip">数据存在本机浏览器，清理缓存会丢失，建议定期导出备份。</p>
   </section>
 
-  <p class="tip" style="text-align:center;margin-top:14px">一刻花开 · 每个番茄钟 15 分钟 · 每日 5 朵达标 · 15 朵封顶</p>
+  <p class="tip" style="text-align:center;margin-top:14px">一刻花开 · 每个番茄钟 15 分钟 · 每日 5 朵达标 · 20 朵封顶</p>
   <p class="tip" style="text-align:center;margin-top:5px;font-size:10.5px;letter-spacing:.08em">by 始于北海</p>
 </div>
 
@@ -384,10 +387,11 @@ var KEY         = 'yike.huakai.v1';   // 与桌面版分开存档
 var TIMER_KEY   = 'yike.huakai.timer.v1';
 var MINUTES     = 15;                  // 每个番茄钟 15 分钟
 var POMO_MS     = MINUTES * 60 * 1000;
-var MAX_PER_DAY = 15;
+var MAX_PER_DAY = 20;
 var MIN_PER_DAY = 5;                   // 达标线
 var RED_FROM    = 6;
 var GOLD_FROM   = 11;
+var PLUM_FROM   = 16;   // 16–20 紫红
 var RAINBOW_FROM= 99;   // 本版只用 绿 / 红 / 金红 三档
 var NOTE_MAX    = 100;
 var WEEK_START  = 1;
@@ -730,6 +734,7 @@ var POMO_STYLE = [];
   for(i = 0; i < 5; i++) POMO_STYLE.push(['#D4A01F','#FDF4DF']);   // 1–5  金黄
   for(i = 0; i < 5; i++) POMO_STYLE.push(['#E07A6E','#FCEDEA']);   // 6–10 浅红
   for(i = 0; i < 5; i++) POMO_STYLE.push(['#A3242E','#F8E7E7']);   // 11–15 深红
+  for(i = 0; i < 5; i++) POMO_STYLE.push(['#8A2E5C','#F6E6F0']);   // 16–20 紫红
 })();
 
 function pomoColors(n){
@@ -805,7 +810,7 @@ function tickTimer(){
 function startTimer(){
   if(timer.running) return;
   if(arrivedDay !== todayKey()){ arrivedDay = todayKey(); renderAll(); }
-  if(countOf(todayKey()) >= MAX_PER_DAY){ toast('今天的 15 个已完成'); return; }
+  if(countOf(todayKey()) >= MAX_PER_DAY){ toast('今天的 20 朵已完成'); return; }
   ensureAudio();
   playStart();
   askNotify();
@@ -834,7 +839,7 @@ function completeTimer(){
 
   var key = todayKey();
   if(countOf(key) >= MAX_PER_DAY){
-    toast('今天已满 15 个，这一轮不计数');
+    toast('今天已满 20 朵，这一轮不计数');
     renderTimer(); renderAll(); return;
   }
   var idx = addPom(key, '', Date.now());
@@ -992,7 +997,8 @@ function renderToday(){
 
   var b = [];
   if(n >= MIN_PER_DAY)  b.push('<span class="badge">' + flowerSVG() + ' 达标</span>');
-  if(n >= GOLD_FROM)      b.push('<span class="badge gold">深红</span>');
+  if(n >= PLUM_FROM)      b.push('<span class="badge plum">紫红</span>');
+  else if(n >= GOLD_FROM) b.push('<span class="badge gold">深红</span>');
   else if(n >= RED_FROM)  b.push('<span class="badge">浅红</span>');
   $('#todayBadges').innerHTML = b.join('');
 
@@ -1217,7 +1223,7 @@ function saveSheet(){
   if(sheetCtx.isNew){
     var t = (key === todayKey()) ? Date.now() : 0;
     var idx = addPom(key, note, t);
-    if(idx < 0){ toast('这一天已满 15 个'); closeSheet(); return; }
+    if(idx < 0){ toast('这一天已满 20 朵'); closeSheet(); return; }
     if(countOf(key) === MIN_PER_DAY){ toast('🌸 达标！日期上长出一朵小红花'); buzz(60); }
   } else {
     var arr = pomsOf(key);
@@ -1410,7 +1416,7 @@ function bind(){
   $('#btnAddPom').addEventListener('click', function(){
     if(!selectedDate) return;
     var n = countOf(selectedDate);
-    if(n >= MAX_PER_DAY){ toast('这一天已满 15 个'); return; }
+    if(n >= MAX_PER_DAY){ toast('这一天已满 20 朵'); return; }
     openSheet(selectedDate, n, true);
   });
 

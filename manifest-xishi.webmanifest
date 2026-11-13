@@ -1,0 +1,30 @@
+{
+  "name": "惜时",
+  "short_name": "惜时",
+  "description": "20 分钟一次专注，52 周为一期，记录存在本机。",
+  "lang": "zh-CN",
+  "id": "./xishi.html",
+  "start_url": "./xishi.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F4F7F4",
+  "theme_color": "#F7FAF7",
+  "icons": [
+    {
+      "src": "icons/xishi-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/xishi-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/xishi-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

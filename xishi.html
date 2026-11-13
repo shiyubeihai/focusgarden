@@ -1,0 +1,2419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!--
+  惜时 · 52 周专注打卡
+  作者：始于北海
+  单文件网页应用，可自由保存、转发与修改，请保留本行注释。
+-->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="author" content="始于北海">
+<title>惜时 FocusLog · 每日学习</title>
+<style>
+  :root{
+    --paper:#f4efe5;
+    --card:#fffdf8;
+    --ink:#2a2622;
+    --ink-2:#6f6659;
+    --ink-3:#a89e8d;
+    --line:#e6ddcc;
+    --line-2:#f0e9db;
+    --red:#c0392b;
+    --red-soft:#f7e3df;
+    --green:#4a7c59;
+    --green-soft:#e3efe6;
+    --blue:#3a6e9e;
+    --blue-soft:#e4eef7;
+    --gold-1:#ffeaa7;
+    --gold-2:#e8b93f;
+    --gold-3:#c08f24;
+    --shadow-s:0 1px 2px rgba(80,60,30,.05);
+    --shadow-m:0 2px 4px rgba(80,60,30,.05), 0 10px 28px rgba(80,60,30,.07);
+    --r:16px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(1100px 560px at 8% -12%, #fdf9f0 0%, rgba(253,249,240,0) 62%),
+      radial-gradient(900px 520px at 100% -6%, #f8f0e0 0%, rgba(248,240,224,0) 58%),
+      var(--paper);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+  .app{max-width:1080px;margin:0 auto;padding:26px 20px 64px}
+
+  /* ---------- 顶部 ---------- */
+  .hd{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:22px}
+  .brand-title{
+    font-family:"聚珍新仿","QuanZhenXinFang","STFangsong","FangSong","Songti SC","Noto Serif SC",serif;
+    font-size:52px;letter-spacing:.1em;margin:0;font-weight:400;line-height:1.12;
+  }
+  .tagline{margin:12px 0 0;font-size:20px;color:var(--ink-3);letter-spacing:.1em}
+  .tagline .hl{color:var(--red);font-weight:600}
+  .hd-side{display:flex;flex-direction:column;align-items:flex-end;gap:16px;padding-top:10px}
+  .en-name{
+    font-family:"Times New Roman",Times,serif;
+    font-size:24px;letter-spacing:.16em;color:var(--ink-3);line-height:1;
+  }
+  .date-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px;color:var(--ink-2)}
+  .date-line .dot{color:var(--ink-3)}
+  .date-line #hdDate{color:var(--ink);font-weight:600;font-size:15px}
+  /* 日期行移到今日计时卡顶部 */
+  .today-date{
+    margin:0 0 14px;padding:0 0 12px;
+    border-bottom:1px solid var(--line-2);font-size:13px;
+  }
+  .today-date #hdDate{font-size:14px}
+  .hd-right{display:flex;gap:10px}
+  .hd-stat{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:8px 14px;text-align:center;box-shadow:var(--shadow-s);min-width:76px;
+  }
+  .hd-stat b{display:block;font-size:20px;line-height:1.1;font-variant-numeric:tabular-nums}
+  .hd-stat span{font-size:11px;color:var(--ink-3);letter-spacing:.04em}
+
+  /* ---------- 卡片 ---------- */
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    padding:20px;box-shadow:var(--shadow-m);
+  }
+  .card h2{
+    font-size:15px;margin:0;font-weight:600;letter-spacing:.03em;color:var(--ink);
+  }
+  .card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+  .card-head small{color:var(--ink-3);font-weight:400;font-size:13px;margin-left:2px}
+
+  .grid{display:grid;grid-template-columns:clamp(250px,23vw,300px) 1fr;gap:16px;align-items:start}
+  @media (max-width:920px){ .grid{grid-template-columns:1fr} }
+  .left-col{display:flex;flex-direction:column;gap:16px;min-width:0}
+
+  /* ---------- 表盘时钟 ---------- */
+  .clock-card{
+    position:relative;display:flex;align-items:center;justify-content:center;
+    padding:10px 12px 12px;min-height:150px;overflow:hidden;
+    background-color:#fcfbf9;
+    /* 隐约的大理石纹路（配合 SVG 噪声底） */
+    background-image:
+      linear-gradient(118deg, rgba(0,0,0,0) 43%, rgba(158,152,142,.10) 46.5%, rgba(255,255,255,0) 49%),
+      linear-gradient(72deg,  rgba(0,0,0,0) 61%, rgba(158,152,142,.075) 64.5%, rgba(255,255,255,0) 67%);
+  }
+  .marble-bg{
+    position:absolute;inset:0;width:100%;height:100%;
+    display:block;pointer-events:none;opacity:.85;
+  }
+  .clock-stack{
+    position:relative;z-index:1;width:100%;height:100%;min-height:0;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  }
+  .clock-svg{flex:1 1 auto;min-height:0;width:100%;max-width:100%;display:block}
+  .clock-caption{
+    flex:none;font-size:12px;color:#cc8079;letter-spacing:.08em;
+    font-variant-numeric:tabular-nums;white-space:nowrap;
+    text-shadow:0 1px 0 rgba(255,255,255,.8);
+  }
+
+  /* ---------- 计时器 ---------- */
+  .timer-card{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:12px;min-height:0;padding:16px 20px;overflow:hidden;
+  }
+  .ring-wrap{position:relative;width:100%;flex:1 1 0;min-height:0}
+  /* 单栏时卡片高度自动，圆环需给定尺寸，否则会塌陷 */
+  @media (max-width:920px){
+    .ring-wrap{flex:0 0 auto;width:190px;height:190px;margin:0 auto}
+  }
+  .ring{width:100%;height:100%;transform:rotate(-90deg);display:block}
+  .ring-bg{fill:none;stroke:var(--line-2);stroke-width:6}
+  .ring-fg{
+    fill:none;stroke:var(--red);stroke-width:6;stroke-linecap:round;
+    stroke-dasharray:439.82;stroke-dashoffset:439.82;
+    transition:stroke-dashoffset .28s linear;
+  }
+  .petal{fill:#F4DEE4;transition:fill .45s ease}
+  .petal.on{fill:#C8324A}
+  /* 格子里的荷花 */
+  .lotus{width:44%;height:44%;display:block;color:#fff;opacity:.92}
+  .slot.rainbow .lotus{opacity:1}
+  .ring-inner{
+    position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:4px;
+  }
+  .time{font-size:42px;font-weight:300;letter-spacing:.02em;font-variant-numeric:tabular-nums;line-height:1}
+  .phase{font-size:12px;color:var(--ink-3);letter-spacing:.08em}
+  .timer-card.running .time{color:var(--red)}
+  /* 休息模式：整块转蓝 */
+  .timer-card.breaking .ring-fg{stroke:var(--blue)}
+  .timer-card.breaking .petal{fill:#dfeaf3}
+  .timer-card.breaking .petal.on{fill:#7fa6c9}
+  .timer-card.breaking .time{color:var(--blue)}
+  .timer-card.breaking .btn.primary{background:var(--blue);box-shadow:0 3px 10px rgba(58,110,158,.26)}
+  .timer-card.breaking .btn.primary:hover{background:#335f88}
+  .timer-btns{display:flex;gap:10px;width:100%}
+  .btn{
+    flex:1;border:1px solid transparent;border-radius:11px;padding:11px 16px;
+    font-size:14px;font-family:inherit;cursor:pointer;transition:.16s;
+    font-weight:500;letter-spacing:.03em;
+  }
+  .btn.primary{background:var(--ink);color:#fdf9f0;box-shadow:0 3px 10px rgba(42,38,34,.18)}
+  .btn.primary:hover{background:#3b352f}
+  .btn.primary:disabled{background:var(--line);color:var(--ink-3);cursor:not-allowed;box-shadow:none}
+  .btn.ghost{background:transparent;border-color:var(--line);color:var(--ink-2)}
+  .btn.ghost:hover{background:#faf6ee;border-color:#d8cdb9}
+  .hint{font-size:12px;color:var(--ink-3);text-align:center;margin:0;line-height:1.7}
+
+  /* ---------- 计时格 ---------- */
+  /* 格子宽度设上限，避免宽屏下撑得过大 */
+  .slots{display:grid;grid-template-columns:repeat(5,minmax(0,104px));gap:10px;justify-content:center}
+  .slot{
+    position:relative;aspect-ratio:1;border-radius:13px;
+    border:1.5px dashed var(--line);background:#fbf8f1;
+    display:flex;align-items:center;justify-content:center;
+    font-size:14px;color:#cfc5b3;font-variant-numeric:tabular-nums;
+    cursor:pointer;transition:transform .16s, box-shadow .16s, background .16s;
+    user-select:none;padding:0;font-family:inherit;
+  }
+  .slot:hover{transform:translateY(-2px);border-color:#d5c9b4}
+  .slot:active{transform:translateY(0) scale(.97)}
+  .slot.done{
+    border-style:solid;border-color:transparent;
+    background:linear-gradient(140deg,#F9E2E8 0%,#F2C9D4 100%);
+    color:#8A3346;box-shadow:0 3px 10px rgba(200,120,140,.20);
+  }
+  .slot.done:hover{box-shadow:0 6px 16px rgba(200,120,140,.28)}
+  .slot.red{
+    background:linear-gradient(140deg,#D2495E 0%,#C2273C 55%,#A81C31 100%);
+    color:#fff;box-shadow:0 4px 14px rgba(180,40,62,.32);
+  }
+  .slot.gold{
+    background:linear-gradient(140deg,#A83242 0%,#8E1F2B 55%,#72151F 100%);
+    color:#fff;box-shadow:0 4px 14px rgba(120,25,38,.36);
+  }
+  .slot.rainbow{
+    background:linear-gradient(140deg,#9B3B6E 0%,#7B2B57 55%,#5E1C41 100%);
+    color:#fff;font-weight:600;
+    border:2px solid #D4AF37;
+    box-shadow:0 4px 16px rgba(110,40,80,.34), inset 0 0 0 1px rgba(255,228,160,.22);
+  }
+  .slot .note-dot{
+    position:absolute;bottom:6px;left:50%;transform:translateX(-50%);
+    width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.85);
+  }
+  .slot.done .note-dot{background:rgba(138,51,70,.45)}
+  .slot.red .note-dot,.slot.gold .note-dot,.slot.rainbow .note-dot{background:rgba(255,255,255,.85)}
+
+  .progress{height:6px;border-radius:99px;background:var(--line-2);overflow:hidden;margin-top:16px}
+  .bar{
+    height:100%;width:0;border-radius:99px;
+    background:linear-gradient(90deg,#F2C9D4,#C2273C);
+    transition:width .45s cubic-bezier(.2,.8,.3,1);
+  }
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:11.5px;color:var(--ink-3)}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .dotc{width:11px;height:11px;border-radius:4px;display:inline-block}
+  .dotc.n{background:linear-gradient(140deg,#F9E2E8,#F2C9D4)}
+  .dotc.d{background:linear-gradient(140deg,#D2495E,#A81C31)}
+  .dotc.g{background:linear-gradient(140deg,#A83242,#72151F)}
+  .dotc.r{background:linear-gradient(140deg,#9B3B6E,#5E1C41);box-shadow:0 0 0 1px #D4AF37}
+  .dotc.f{background:var(--red);border-radius:50%}
+
+  .badge{
+    display:inline-flex;align-items:center;gap:5px;
+    font-size:12px;padding:4px 10px;border-radius:99px;
+    background:var(--red-soft);color:var(--red);font-weight:500;
+  }
+  .badge.crimson{background:#FBE3E7;color:#B8283E}
+  .badge.deep{background:#F3DCDF;color:#8E1F2B}
+  .badge.purple{background:#F0E1EA;color:#7B2B57;box-shadow:inset 0 0 0 1px #D4AF37}
+
+  /* ---------- 小红花 ---------- */
+  .flower{width:14px;height:14px;display:inline-block;vertical-align:-2px}
+  @keyframes bloom{0%{transform:scale(.2) rotate(-40deg);opacity:0}60%{transform:scale(1.25) rotate(8deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
+  .flower.bloom{animation:bloom .5s cubic-bezier(.2,1.5,.4,1) both}
+
+  /* ---------- 日历 ---------- */
+  .cal-card{margin-top:16px}
+
+  /* ---------- 日历 + 当日日志 双栏 ---------- */
+  .cal-split{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
+  .cal-pane{min-width:0}
+  .log-pane{
+    position:relative;min-width:0;display:flex;flex-direction:column;align-self:start;
+    border-left:1px solid var(--line-2);padding-left:22px;overflow:hidden;
+  }
+  /* 列表可滚动时底部淡出提示 */
+  .log-pane::after{
+    content:"";position:absolute;left:0;right:0;bottom:0;height:26px;pointer-events:none;
+    background:linear-gradient(to bottom, rgba(255,253,248,0), rgba(255,253,248,.96));
+  }
+  @media (max-width:820px){
+    .cal-split{grid-template-columns:1fr;gap:16px}
+    .log-pane{border-left:0;border-top:1px solid var(--line-2);padding-left:0;padding-top:16px;height:auto !important}
+  }
+
+  /* ---------- 52 周总结 ---------- */
+  .cycle-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .cycle-head h2{display:flex;align-items:center;gap:8px}
+  .cycle-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .icon-btn.sm{width:26px;height:26px;border-radius:8px;font-size:15px;padding-bottom:1px}
+  .icon-btn:disabled{opacity:.3;cursor:not-allowed}
+  .icon-btn:disabled:hover{background:transparent;border-color:var(--line)}
+  .cycle-no{
+    font-size:11px;font-weight:500;padding:3px 9px;border-radius:99px;
+    background:var(--green);color:#fff;letter-spacing:.04em;
+  }
+  .cycle-range{font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+  .cycle-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .cycle-stat{background:#fbf8f1;border-radius:11px;padding:11px 6px;text-align:center}
+  .cycle-stat b{display:block;font-size:19px;font-variant-numeric:tabular-nums;line-height:1.25}
+  .cycle-stat span{font-size:10.5px;color:var(--ink-3)}
+  .week-strip{display:grid;grid-template-columns:repeat(26,1fr);gap:4px;margin-top:16px}
+  .wk{aspect-ratio:1;border-radius:4px;background:var(--line-2);transition:transform .12s}
+  .wk:hover{transform:scale(1.25)}
+  .wk.l1{background:#dcebe1}
+  .wk.l2{background:#aed3bc}
+  .wk.l3{background:#71ab87}
+  .wk.l4{background:#3d7a5b}
+  .wk.future{background:#f6f2e9}
+  .cycle-text{margin:16px 0 0;font-size:13px;line-height:1.9;color:var(--ink-2)}
+  .cycle-text em{font-style:normal;color:var(--red);font-weight:600}
+  .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .icon-btn{
+    width:32px;height:32px;border-radius:9px;border:1px solid var(--line);
+    background:transparent;color:var(--ink-2);font-size:18px;line-height:1;
+    cursor:pointer;transition:.16s;display:flex;align-items:center;justify-content:center;padding:0 0 2px;
+  }
+  .icon-btn:hover{background:#faf6ee;border-color:#d8cdb9}
+  .cal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px}
+  .cal-week div{text-align:center;font-size:11px;color:var(--ink-3);letter-spacing:.06em;padding:4px 0}
+  .cal-week div.we{color:var(--red);opacity:.7}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .cal-day{
+    position:relative;aspect-ratio:1/.92;border-radius:10px;border:1px solid transparent;
+    background:#fbf8f1;padding:5px 4px 12px;font-family:inherit;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+    transition:.15s;overflow:hidden;
+  }
+  .cal-day:hover{background:#f6f1e6;transform:translateY(-1px)}
+  .cal-day.blank{background:transparent;cursor:default;pointer-events:none}
+  .cal-day .cn{font-size:13px;font-variant-numeric:tabular-nums;color:var(--ink);line-height:1.2;z-index:1}
+  .cal-day .cl{font-size:9.5px;color:var(--ink-3);line-height:1.3;white-space:nowrap;z-index:1;
+    max-width:100%;overflow:hidden}
+  .cal-day .cl.fest{color:var(--red);font-weight:600}
+  .cal-day .cl.term{color:var(--green);font-weight:600}
+  .cal-day .cl.birth{color:#a4402f;font-weight:600}
+  .cal-day .cl.mem{color:#8a7355}
+  .cal-day .cl.warn{color:#a8762a;font-weight:600}
+
+  /* 当日事件 */
+  .ev-list{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+  .ev{font-size:11px;padding:3px 8px;border-radius:99px;background:#f4f1ea;color:var(--ink-2);line-height:1.5}
+  .ev.fest{background:var(--red-soft);color:var(--red);font-weight:600}
+  .ev.term{background:#e7f1ea;color:var(--green);font-weight:600}
+  .ev.birth{background:#f7e6e2;color:#a4402f;font-weight:600}
+  .ev.mem{background:#f0ece3;color:#8a7355}
+  .ev.warn{background:#f8efdc;color:#a8762a;font-weight:600}
+  .ev-notes{font-size:11px;color:var(--ink-3);line-height:1.75;margin:0 0 10px}
+  .ev-notes b{color:var(--ink-2);font-weight:600}
+  .cal-day .moon{position:absolute;left:3%;top:4%;width:29%;aspect-ratio:1;z-index:2}
+  .cal-day.today{border-color:var(--ink);border-width:1.5px}
+  .cal-day.sel{box-shadow:0 0 0 2px rgba(192,57,43,.35) inset;border-color:var(--red)}
+  .cal-day.future{opacity:.42}
+  .cal-day .mini{
+    position:absolute;left:5px;right:5px;bottom:5px;height:3px;border-radius:99px;
+    background:var(--line-2);overflow:hidden;
+  }
+  .cal-day .mini i{display:block;height:100%;border-radius:99px;background:#F2C9D4;transition:width .4s}
+  .cal-day.red .mini i{background:linear-gradient(90deg,#D2495E,#A81C31)}
+  .cal-day.gold .mini i{background:linear-gradient(90deg,#A83242,#72151F)}
+  .cal-day.rain .mini i{background:linear-gradient(90deg,#9B3B6E,#5E1C41)}
+  .cal-day .cf{position:absolute;top:2px;right:2px;z-index:2}
+  .cal-day .cf .flower{width:11px;height:11px}
+
+  /* ---------- 当日详情 ---------- */
+  .detail-card{margin-top:16px}
+  .detail-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+  .detail-sub{font-size:12.5px;color:var(--ink-3);margin:0 0 14px}
+  .pom-list{display:flex;flex-direction:column;gap:8px;flex:1 1 auto;min-height:0;overflow:auto;padding-right:4px}
+  .pom-row{
+    display:flex;gap:10px;align-items:flex-start;padding:9px 12px;border-radius:10px;
+    background:#fbf8f1;border:1px solid var(--line-2);cursor:pointer;transition:.15s;
+  }
+  .pom-row:hover{background:#f6f1e6;border-color:var(--line)}
+  .pom-row .idx{
+    flex:none;width:22px;height:22px;border-radius:7px;
+    background:linear-gradient(140deg,#F9E2E8,#F2C9D4);color:#8A3346;
+    font-size:11px;display:flex;align-items:center;justify-content:center;margin-top:1px;
+  }
+  .pom-row.red .idx{background:linear-gradient(140deg,#D2495E,#A81C31);color:#fff}
+  .pom-row.gold .idx{background:linear-gradient(140deg,#A83242,#72151F);color:#fff}
+  .pom-row.rain .idx{background:linear-gradient(140deg,#9B3B6E,#5E1C41);color:#fff;box-shadow:inset 0 0 0 1px #D4AF37}
+  .pom-row .body{flex:1;min-width:0}
+  .pom-row .note{font-size:13px;color:var(--ink);word-break:break-word}
+  .pom-row .note.empty{color:var(--ink-3);font-style:italic}
+  .pom-row .meta{font-size:11px;color:var(--ink-3);margin-top:2px}
+  .empty-tip{font-size:13px;color:var(--ink-3);text-align:center;padding:22px 0}
+
+  /* ---------- 统计 ---------- */
+  .stats-card{margin-top:16px}
+  .stat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-top:14px}
+  @media (max-width:820px){ .stat-grid{grid-template-columns:repeat(3,1fr)} }
+  .stat{text-align:center;padding:10px 4px;border-radius:10px;background:#fbf8f1}
+  .stat b{display:block;font-size:20px;font-variant-numeric:tabular-nums;font-weight:600;line-height:1.2}
+  .stat span{font-size:11px;color:var(--ink-3)}
+
+  /* ---------- 工具 ---------- */
+  .tools-card{margin-top:16px}
+  .tools{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .tools .btn{flex:0 0 auto;min-width:110px}
+  .btn.danger{background:transparent;border-color:#e8cfcb;color:var(--red)}
+  .btn.danger:hover{background:var(--red-soft)}
+
+  footer{text-align:center;font-size:11.5px;color:var(--ink-3);margin-top:28px;line-height:1.9}
+
+  /* ---------- 弹窗 ---------- */
+  .modal{
+    position:fixed;inset:0;background:rgba(42,38,34,.42);backdrop-filter:blur(3px);
+    display:flex;align-items:center;justify-content:center;padding:20px;z-index:50;
+  }
+  .modal[hidden]{display:none}
+  .modal-card{
+    background:var(--card);border-radius:18px;padding:22px;width:100%;max-width:430px;
+    box-shadow:0 20px 60px rgba(42,38,34,.24);animation:pop .22s cubic-bezier(.2,1.2,.4,1);
+  }
+  @keyframes pop{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
+  .modal-card h3{margin:0 0 4px;font-size:16px}
+  .m-sub{font-size:12px;color:var(--ink-3);margin:0 0 14px}
+  .modal-card textarea{
+    width:100%;min-height:104px;resize:vertical;border:1px solid var(--line);border-radius:11px;
+    padding:11px 12px;font-family:inherit;font-size:13.5px;line-height:1.6;
+    background:#fbf8f1;color:var(--ink);outline:none;transition:.16s;
+  }
+  .modal-card textarea:focus{border-color:var(--green);background:#fff;box-shadow:0 0 0 3px rgba(74,124,89,.1)}
+  .m-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}
+  .m-foot span{font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+  .m-foot > div{display:flex;gap:8px}
+  .m-foot .btn{flex:0 0 auto;min-width:76px}
+
+  /* ---------- Toast ---------- */
+  .toast{
+    position:fixed;left:50%;bottom:32px;transform:translate(-50%,20px);
+    background:rgba(42,38,34,.94);color:#fdf9f0;padding:11px 20px;border-radius:99px;
+    font-size:13px;opacity:0;pointer-events:none;transition:.28s;z-index:60;
+    max-width:88vw;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.2);
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+  }
+</style>
+<link rel="manifest" href="manifest-xishi.webmanifest">
+<link rel="apple-touch-icon" href="icons/xishi-180.png">
+</head>
+<body>
+<div class="app">
+
+  <header class="hd">
+    <div class="brand">
+      <h1 class="brand-title">惜时</h1>
+      <p class="tagline">记录每天的<span class="hl">专注</span>时间</p>
+    </div>
+    <div class="hd-side">
+      <div class="en-name">FocusLog</div>
+      <div class="hd-right">
+        <div class="hd-stat"><b id="hdToday">0</b><span>今日花朵</span></div>
+        <div class="hd-stat"><b id="hdStreak">0</b><span>连续达标</span></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="grid">
+    <div class="left-col">
+
+    <section class="card timer-card" id="timerCard">
+      <div class="ring-wrap">
+        <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
+          <g id="petals"></g>
+          <circle class="ring-bg" cx="100" cy="100" r="70"></circle>
+          <circle class="ring-fg" id="ringFg" cx="100" cy="100" r="70"></circle>
+        </svg>
+        <div class="ring-inner">
+          <div class="time" id="timeText">20:00</div>
+          <div class="phase" id="phaseText">准备开始</div>
+        </div>
+      </div>
+      <div class="timer-btns">
+        <button class="btn primary" id="btnStart">开始专注</button>
+        <button class="btn ghost" id="btnReset">重置</button>
+      </div>
+      <p class="hint">点击右侧格子可补记或填写说明</p>
+    </section>
+
+    <section class="card clock-card" id="clockCard">
+      <!-- 白色大理石底纹（feTurbulence 生成，无图片） -->
+      <svg class="marble-bg" viewBox="0 0 300 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs>
+          <filter id="marbleF" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+            <feTurbulence type="fractalNoise" baseFrequency="0.0065 0.0125" numOctaves="6" seed="23" result="n"/>
+            <feColorMatrix in="n" type="saturate" values="0" result="g"/>
+            <!-- 噪声中值 → 白，偏离中值 → 淡灰，形成白底细石纹 -->
+            <feComponentTransfer in="g">
+              <feFuncR type="table" tableValues="1 0.938 1 0.928 1"/>
+              <feFuncG type="table" tableValues="1 0.933 1 0.921 1"/>
+              <feFuncB type="table" tableValues="1 0.924 1 0.910 1"/>
+              <feFuncA type="linear" slope="0" intercept="1"/>
+            </feComponentTransfer>
+          </filter>
+        </defs>
+        <rect width="300" height="240" filter="url(#marbleF)"/>
+      </svg>
+
+      <div class="clock-stack">
+        <svg class="clock-svg" viewBox="0 0 200 200" role="img" aria-label="时钟">
+          <defs>
+            <radialGradient id="dialGrad" cx="37%" cy="29%" r="78%">
+              <stop offset="0%"   stop-color="#ffffff"/>
+              <stop offset="55%"  stop-color="#fdfcfa"/>
+              <stop offset="100%" stop-color="#eeebe4"/>
+            </radialGradient>
+            <!-- 表壳：低反差金属，边缘不再生硬 -->
+            <linearGradient id="bezelGrad" x1="12%" y1="2%" x2="88%" y2="98%">
+              <stop offset="0%"   stop-color="#f6f6f7"/>
+              <stop offset="20%"  stop-color="#e2e4e7"/>
+              <stop offset="46%"  stop-color="#fefeff"/>
+              <stop offset="68%"  stop-color="#dcdedf"/>
+              <stop offset="86%"  stop-color="#eaebec"/>
+              <stop offset="100%" stop-color="#f4f4f5"/>
+            </linearGradient>
+            <radialGradient id="glassGrad" cx="34%" cy="24%" r="72%">
+              <stop offset="0%"  stop-color="#ffffff" stop-opacity=".5"/>
+              <stop offset="52%" stop-color="#ffffff" stop-opacity="0"/>
+            </radialGradient>
+
+            <!-- 表壳落在石面上的柔和投影 -->
+            <filter id="caseShadow" x="-30%" y="-30%" width="160%" height="160%">
+              <feDropShadow dx="0" dy="3.2" stdDeviation="4.6" flood-color="#8d867a" flood-opacity="0.30"/>
+            </filter>
+            <!-- 表壳与盘面交界的虚化 -->
+            <filter id="edgeBlur" x="-10%" y="-10%" width="120%" height="120%">
+              <feGaussianBlur stdDeviation="1.05"/>
+            </filter>
+          </defs>
+
+          <!-- 表壳 -->
+          <circle cx="100" cy="100" r="98" fill="url(#bezelGrad)" filter="url(#caseShadow)"/>
+          <!-- 表盘 -->
+          <circle cx="100" cy="100" r="89.5" fill="url(#dialGrad)"/>
+          <!-- 交界的柔化过渡 -->
+          <circle cx="100" cy="100" r="89.5" fill="none" stroke="#9aa0a6"
+                  stroke-width="1.6" opacity=".32" filter="url(#edgeBlur)"/>
+
+          <!-- 刻度（JS 生成） -->
+          <g id="clockTicks"></g>
+
+          <!-- 3 点位日期窗 -->
+          <rect x="130" y="91.5" width="25" height="17" rx="2.5" fill="#fffdf8" stroke="#98a0a8" stroke-width="1"/>
+          <text id="clockDate" x="142.5" y="104" text-anchor="middle" font-size="10" font-weight="600"
+                fill="#2c3136" font-family="Helvetica,Arial,sans-serif">24</text>
+
+          <!-- 盘面文字 -->
+          <text x="100" y="50" text-anchor="middle" font-size="9.6" letter-spacing="2.4"
+                fill="#2c3136" font-family="Songti SC,STSong,serif">天行健</text>
+          <text x="100" y="61" text-anchor="middle" font-size="4.6" letter-spacing="1.6"
+                fill="#98a0a8" font-family="Helvetica,Arial,sans-serif">FOCUS</text>
+          <text x="100" y="152" text-anchor="middle" font-size="4.6" letter-spacing="1.6"
+                fill="#98a0a8" font-family="Helvetica,Arial,sans-serif">QUARTZ</text>
+
+          <!-- 指针 -->
+          <g id="handHour"><polygon points="100,58 103,93 100,98 97,93" fill="#2c3136"/></g>
+          <g id="handMin"><polygon points="100,34 102.4,92 100,98 97.6,92" fill="#2c3136"/></g>
+          <g id="handSec">
+            <line x1="100" y1="114" x2="100" y2="27" stroke="#c0392b" stroke-width="1.15" stroke-linecap="round"/>
+            <circle cx="100" cy="108" r="3" fill="#c0392b"/>
+          </g>
+          <circle cx="100" cy="100" r="4.4" fill="#dfe3e7"/>
+          <circle cx="100" cy="100" r="2.1" fill="#8b9199"/>
+
+          <!-- 玻璃反光 -->
+          <circle cx="100" cy="100" r="89.5" fill="url(#glassGrad)" pointer-events="none"/>
+        </svg>
+
+        <div class="clock-caption" id="clockCaption">今日已专注 0 分钟</div>
+      </div>
+    </section>
+    </div>
+
+    <section class="card today-card">
+      <div class="date-line today-date">
+        <span id="hdDate">—</span>
+        <span class="dot">·</span>
+        <span id="hdWeek">—</span>
+        <span class="dot">·</span>
+        <span id="hdLunar">—</span>
+        <span id="hdFlower"></span>
+      </div>
+      <div class="card-head">
+        <h2>今日花朵 <span id="todayCount" style="font-size:20px;font-variant-numeric:tabular-nums">0</span><small>/ 20</small></h2>
+        <div id="todayBadges" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      </div>
+      <div class="slots" id="slots"></div>
+      <div class="progress"><div class="bar" id="bar"></div></div>
+      <div class="legend">
+        <span><i class="dotc n"></i>1–5 淡粉</span>
+        <span><i class="dotc d"></i>6–10 绯红</span>
+        <span><i class="dotc g"></i>11–15 深红</span>
+        <span><i class="dotc r"></i>16–20 紫红</span>
+        <span><i class="dotc f"></i>满 6 出花</span>
+      </div>
+    </section>
+  </main>
+
+  <section class="card cal-card">
+    <div class="cal-split">
+      <div class="cal-pane">
+        <div class="cal-head">
+          <button class="icon-btn" id="calPrev" aria-label="上个月">‹</button>
+          <h2 id="calTitle">—</h2>
+          <button class="icon-btn" id="calNext" aria-label="下个月">›</button>
+        </div>
+        <div class="cal-week" id="calWeek"></div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+
+      <div class="log-pane" id="detailCard">
+        <div class="detail-head">
+          <h2 id="detailTitle">—</h2>
+          <button class="btn ghost" id="btnAddPom" style="display:none;padding:5px 12px;font-size:12px;border-radius:8px;flex:0 0 auto">补记一个</button>
+        </div>
+        <p class="detail-sub" id="detailSub"></p>
+        <div id="detailEvents"></div>
+        <div class="pom-list" id="pomList"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card cycle-card">
+    <div class="cycle-head">
+      <h2>52 周总结</h2>
+      <div class="cycle-tools">
+        <button class="icon-btn sm" id="cyPrev" aria-label="上一期">‹</button>
+        <span class="cycle-no" id="cycleNo">第 1 期</span>
+        <button class="icon-btn sm" id="cyNext" aria-label="下一期">›</button>
+        <span class="cycle-range" id="cycleRange">—</span>
+        <button class="btn ghost" id="btnCycleExport" style="flex:0 0 auto;min-width:0;padding:6px 12px;font-size:12px;border-radius:9px">导出总结</button>
+      </div>
+    </div>
+    <div class="cycle-stats">
+      <div class="cycle-stat"><b id="cyTotal">0</b><span>本期计时</span></div>
+      <div class="cycle-stat"><b id="cyHours">0h</b><span>累计专注</span></div>
+      <div class="cycle-stat"><b id="cyRate">0%</b><span>达标率</span></div>
+      <div class="cycle-stat"><b id="cyRun">0</b><span>最长连续</span></div>
+    </div>
+    <div class="week-strip" id="weekStrip"></div>
+    <p class="cycle-text" id="cycleText">—</p>
+  </section>
+
+  <section class="card stats-card">
+    <h2>统计</h2>
+    <div class="stat-grid">
+      <div class="stat"><b id="stTotal">0</b><span>累计计时</span></div>
+      <div class="stat"><b id="stHours">0h</b><span>累计专注</span></div>
+      <div class="stat"><b id="stDays">0</b><span>达标天数</span></div>
+      <div class="stat"><b id="stBest">0</b><span>最长连续</span></div>
+      <div class="stat"><b id="stWeek">0</b><span>本周计时</span></div>
+      <div class="stat"><b id="stRate">0%</b><span>本月达标率</span></div>
+    </div>
+  </section>
+
+  <section class="card tools-card">
+    <h2>数据</h2>
+    <div class="tools">
+      <button class="btn ghost" id="btnExportJson">导出 JSON</button>
+      <button class="btn ghost" id="btnExportCsv">导出 CSV</button>
+      <button class="btn ghost" id="btnImport">导入 JSON</button>
+      <button class="btn danger" id="btnClear">清空数据</button>
+      <input type="file" id="fileInput" accept=".json,application/json" hidden>
+    </div>
+    <p class="hint" style="text-align:left;margin-top:14px">
+      数据存在浏览器本地（localStorage），换浏览器或清理缓存会丢失，建议每周导出一次 JSON 备份。<br>
+      CSV 带 BOM，可直接用 Excel / WPS 打开。
+    </p>
+  </section>
+
+  <footer>
+    惜时 · 52 周为一期 · 每日 6 个达标 · 20 个封顶<br>
+    本地存档 · 无外部依赖<br>
+    by 始于北海
+  </footer>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <h3 id="mTitle">计时说明</h3>
+    <p class="m-sub" id="mSub"></p>
+    <textarea id="mInput" maxlength="100" placeholder="这 20 分钟做了什么？（可留空）"></textarea>
+    <div class="m-foot">
+      <span id="mCount">0 / 100</span>
+      <div>
+        <button class="btn ghost" id="mCancel">取消</button>
+        <button class="btn primary" id="mSave">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ==================================================================
+   0. 常量
+   ================================================================== */
+var KEY        = 'pomo.checkin.v1';
+var TIMER_KEY  = 'pomo.timer.v1';
+var MINUTES     = 20;                // 每个计时 20 分钟
+var POMO_MS     = MINUTES * 60 * 1000;
+var BREAK_MINUTES = 5;                // 一轮之后的休息
+var BREAK_MS      = BREAK_MINUTES * 60 * 1000;
+var MAX_PER_DAY = 20;              // 每日上限
+var MIN_PER_DAY = 6;               // 达标线（小红花）
+var RED_FROM    = 6;               // 第 6 个起绯红
+var GOLD_FROM   = 11;              // 第 11 个起深红
+var RAINBOW_FROM= 16;              // 第 16 个起紫红（金边）
+var NOTE_MAX    = 100;             // 单个计时说明字数上限
+var WEEK_START  = 1;               // 周一为一周起点
+
+var WEEK_CN = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+var WEEK_HD = ['一','二','三','四','五','六','日'];
+
+/* ==================================================================
+   1. 农历（1900–2100，无外部依赖）
+   ================================================================== */
+/* ===== LUNAR-START ===== */
+var LUNAR_INFO = [
+0x04bd8,0x04ae0,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,
+0x04ae0,0x0a5b6,0x0a4d0,0x0d250,0x1d255,0x0b540,0x0d6a0,0x0ada2,0x095b0,0x14977,
+0x04970,0x0a4b0,0x0b4b5,0x06a50,0x06d40,0x1ab54,0x02b60,0x09570,0x052f2,0x04970,
+0x06566,0x0d4a0,0x0ea50,0x06e95,0x05ad0,0x02b60,0x186e3,0x092e0,0x1c8d7,0x0c950,
+0x0d4a0,0x1d8a6,0x0b550,0x056a0,0x1a5b4,0x025d0,0x092d0,0x0d2b2,0x0a950,0x0b557,
+0x06ca0,0x0b550,0x15355,0x04da0,0x0a5b0,0x14573,0x052b0,0x0a9a8,0x0e950,0x06aa0,
+0x0aea6,0x0ab50,0x04b60,0x0aae4,0x0a570,0x05260,0x0f263,0x0d950,0x05b57,0x056a0,
+0x096d0,0x04dd5,0x04ad0,0x0a4d0,0x0d4d4,0x0d250,0x0d558,0x0b540,0x0b6a0,0x195a6,
+0x095b0,0x049b0,0x0a974,0x0a4b0,0x0b27a,0x06a50,0x06d40,0x0af46,0x0ab60,0x09570,
+0x04af5,0x04970,0x064b0,0x074a3,0x0ea50,0x06b58,0x055c0,0x0ab60,0x096d5,0x092e0,
+0x0c960,0x0d954,0x0d4a0,0x0da50,0x07552,0x056a0,0x0abb7,0x025d0,0x092d0,0x0cab5,
+0x0a950,0x0b4a0,0x0baa4,0x0ad50,0x055d9,0x04ba0,0x0a5b0,0x15176,0x052b0,0x0a930,
+0x07954,0x06aa0,0x0ad50,0x05b52,0x04b60,0x0a6e6,0x0a4e0,0x0d260,0x0ea65,0x0d530,
+0x05aa0,0x076a3,0x096d0,0x04afb,0x04ad0,0x0a4d0,0x1d0b6,0x0d250,0x0d520,0x0dd45,
+0x0b5a0,0x056d0,0x055b2,0x049b0,0x0a577,0x0a4b0,0x0aa50,0x1b255,0x06d20,0x0ada0,
+0x14b63,0x09370,0x049f8,0x04970,0x064b0,0x168a6,0x0ea50,0x06b20,0x1a6c4,0x0aae0,
+0x0a2e0,0x0d2e3,0x0c960,0x0d557,0x0d4a0,0x0da50,0x05d55,0x056a0,0x0a6d0,0x055d4,
+0x052d0,0x0a9b8,0x0a950,0x0b4a0,0x0b6a6,0x0ad50,0x055a0,0x0aba4,0x0a5b0,0x052b0,
+0x0b273,0x06930,0x07337,0x06aa0,0x0ad50,0x14b55,0x04b60,0x0a570,0x054e4,0x0d160,
+0x0e968,0x0d520,0x0daa0,0x16aa6,0x056d0,0x04ae0,0x0a9d4,0x0a2d0,0x0d150,0x0f252,
+0x0d520
+];
+
+var GAN = '甲乙丙丁戊己庚辛壬癸';
+var ZHI = '子丑寅卯辰巳午未申酉戌亥';
+var ZODIAC = '鼠牛虎兔龙蛇马羊猴鸡狗猪';
+var MONTH_CN = ['正','二','三','四','五','六','七','八','九','十','冬','腊'];
+var NUM_CN = ['一','二','三','四','五','六','七','八','九','十'];
+
+function leapMonth(y){ return LUNAR_INFO[y - 1900] & 0xf; }
+
+function leapDays(y){
+  if(!leapMonth(y)) return 0;
+  return (LUNAR_INFO[y - 1900] & 0x10000) ? 30 : 29;
+}
+
+function monthDays(y, m){
+  return (LUNAR_INFO[y - 1900] & (0x10000 >> m)) ? 30 : 29;
+}
+
+function yearDays(y){
+  var sum = 348;
+  for(var i = 0x8000; i > 0x8; i >>= 1){
+    sum += (LUNAR_INFO[y - 1900] & i) ? 1 : 0;
+  }
+  return sum + leapDays(y);
+}
+
+function dayName(d){
+  if(d === 10) return '初十';
+  if(d === 20) return '二十';
+  if(d === 30) return '三十';
+  var tens = Math.floor(d / 10);
+  var unit = d % 10;
+  var pre = ['初','十','廿','三'][tens];
+  return pre + NUM_CN[unit - 1];
+}
+
+/* 公历 → 农历。返回 {y, m, d, isLeap, yearCn, monthCn, dayCn, zodiac, text} */
+function solar2lunar(y, m, d){
+  if(y < 1900 || y > 2100) return null;
+
+  var offset = Math.round((Date.UTC(y, m - 1, d) - Date.UTC(1900, 0, 31)) / 86400000);
+  var i, temp = 0;
+
+  for(i = 1900; i < 2101 && offset > 0; i++){
+    temp = yearDays(i);
+    offset -= temp;
+  }
+  if(offset < 0){ offset += temp; i--; }
+
+  var year = i;
+  var leap = leapMonth(year);
+  var isLeap = false;
+
+  for(i = 1; i < 13 && offset > 0; i++){
+    if(leap > 0 && i === leap + 1 && !isLeap){
+      --i; isLeap = true; temp = leapDays(year);
+    } else {
+      temp = monthDays(year, i);
+    }
+    if(isLeap && i === leap + 1) isLeap = false;
+    offset -= temp;
+  }
+
+  if(offset === 0 && leap > 0 && i === leap + 1){
+    if(isLeap){ isLeap = false; }
+    else { isLeap = true; --i; }
+  }
+  if(offset < 0){ offset += temp; --i; }
+
+  var month = i;
+  var day = offset + 1;
+
+  var gz = (year - 4) % 60;
+  return {
+    y: year,
+    m: month,
+    d: day,
+    isLeap: isLeap,
+    yearCn: GAN.charAt(gz % 10) + ZHI.charAt(gz % 12),
+    monthCn: (isLeap ? '闰' : '') + MONTH_CN[month - 1] + '月',
+    dayCn: dayName(day),
+    zodiac: ZODIAC.charAt(gz % 12),
+    text: GAN.charAt(gz % 10) + ZHI.charAt(gz % 12) + '年 ' +
+          (isLeap ? '闰' : '') + MONTH_CN[month - 1] + '月' + dayName(day)
+  };
+}
+
+/* 简写：公历日期的农历短标签（日历格用） */
+function lunarShort(y, m, d){
+  var l = solar2lunar(y, m, d);
+  if(!l) return '';
+  if(l.d === 1) return l.monthCn;
+  return l.dayCn;
+}
+/* ===== LUNAR-END ===== */
+
+/* ==================================================================
+   二十四节气（太阳视黄经法，按北京时间取日期）
+   ================================================================== */
+var TERM_NAMES = ['春分','清明','谷雨','立夏','小满','芒种','夏至','小暑','大暑','立秋',
+                  '处暑','白露','秋分','寒露','霜降','立冬','小雪','大雪','冬至','小寒',
+                  '大寒','立春','雨水','惊蛰'];
+
+function sunLongitude(jd){
+  var T = (jd - 2451545.0) / 36525;
+  var L0 = 280.46646 + 36000.76983 * T + 0.0003032 * T * T;
+  var M = 357.52911 + 35999.05029 * T - 0.0001537 * T * T;
+  var Mr = M * Math.PI / 180;
+  var C = (1.914602 - 0.004817 * T - 0.000014 * T * T) * Math.sin(Mr)
+        + (0.019993 - 0.000101 * T) * Math.sin(2 * Mr)
+        + 0.000289 * Math.sin(3 * Mr);
+  var omega = (125.04 - 1934.136 * T) * Math.PI / 180;
+  var lambda = L0 + C - 0.00569 - 0.00478 * Math.sin(omega);
+  return ((lambda % 360) + 360) % 360;
+}
+
+function julianDay(y, m, d){
+  if(m <= 2){ y -= 1; m += 12; }
+  var A = Math.floor(y / 100);
+  var B = 2 - A + Math.floor(A / 4);
+  return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + B - 1524.5;
+}
+
+var termCache = {};
+function termsOfYear(year){
+  if(termCache[year]) return termCache[year];
+  var map = {};
+  var jd0 = julianDay(year, 1, 1) - 2;
+  var jdEnd = julianDay(year + 1, 1, 1) - 1;  /* 只扫到本年末，避免把次年的小寒算进来 */
+  var prev = sunLongitude(jd0);
+  for(var k = 1; jd0 + k <= jdEnd; k++){
+    var jd = jd0 + k;
+    var lon = sunLongitude(jd);
+    var diff = lon - prev;
+    if(diff < 0) diff += 360;
+    if(diff > 0 && diff < 5){
+      var start = Math.ceil(prev / 15) * 15;
+      for(var a = start; a < prev + diff + 1e-9; a += 15){
+        var frac = (a - prev) / diff;
+        if(frac < 0) frac = 0;
+        if(frac > 1) frac = 1;
+        var jdx = jd0 + k - 1 + frac;
+        var dt = new Date((jdx - 2440587.5 + 8 / 24) * 86400000);
+        var mm = dt.getUTCMonth() + 1, dd = dt.getUTCDate();
+        var lonIdx = Math.round((((a % 360) + 360) % 360) / 15) % 24;
+        map[pad2(mm) + '-' + pad2(dd)] = TERM_NAMES[lonIdx];
+      }
+    }
+    prev = lon;
+  }
+  termCache[year] = map;
+  return map;
+}
+
+/* ==================================================================
+   干支：年 / 月 / 日
+   ================================================================== */
+function ganzhiOf(n){
+  return GAN.charAt(((n % 10) + 10) % 10) + ZHI.charAt(((n % 12) + 12) % 12);
+}
+
+/* 日柱：六十甲子序号 = (儒略日数 + 49) % 60，甲子 = 0
+   已用 2026-10-01 戊申 / 10-08 乙卯 / 10-24 辛未 三点校准 */
+function dayGanZhi(y, m, d){
+  var jdn = Math.floor(julianDay(y, m, d) + 0.5);
+  return ganzhiOf(((jdn + 49) % 60 + 60) % 60);
+}
+
+/* 月柱：立春起为寅月，每遇「节」换月；月干由年干五虎遁推得 */
+var JIE_NAMES = ['小寒','立春','惊蛰','清明','立夏','芒种','小暑','立秋','白露','寒露','立冬','大雪'];
+var JIE_IDX   = [11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+function monthGanZhi(y, m, d, yearGan){
+  var t = termsOfYear(y);
+  var best = null, bestKey = -1;
+  var today = m * 100 + d;
+
+  for(var i = 0; i < JIE_NAMES.length; i++){
+    for(var k in t){
+      if(t[k] !== JIE_NAMES[i]) continue;
+      var key = (+k.slice(0, 2)) * 100 + (+k.slice(3));
+      if(key <= today && key > bestKey){ bestKey = key; best = JIE_IDX[i]; }
+    }
+  }
+  var idx = (best === null) ? 10 : best;      // 立春之前算子月
+  var zhi = (2 + idx) % 12;
+  var gan = (((yearGan * 2 + idx + 2) % 10) + 10) % 10;
+  return GAN.charAt(gan) + ZHI.charAt(zhi);
+}
+
+/* 形如「戊戌月 辛未日」 */
+function ganzhiLine(y, m, d, L){
+  var yg = ((((L ? L.y : y) - 4) % 10) + 10) % 10;
+  return monthGanZhi(y, m, d, yg) + '月 ' + dayGanZhi(y, m, d) + '日';
+}
+
+/* ==================================================================
+   节日与纪念日
+   t: fest 节日 / term 节气 / birth 诞辰·重要纪念 / mem 逝世·牺牲 / warn 警示·反思
+   s: 日历格短标签（≤4 字）  f: 详情全称  n: 补充说明
+   ================================================================== */
+var EV_LUNAR = [
+  { m:1,  d:1,  s:'春节',   f:'春节', t:'fest' },
+  { m:1,  d:15, s:'元宵',   f:'元宵节', t:'fest' },
+  { m:3,  d:3,  s:'宜春游', f:'三月三 · 宜春游', t:'fest' },
+  { m:5,  d:5,  s:'端午',   f:'端午节', t:'fest' },
+  { m:7,  d:7,  s:'宜乞巧', f:'七月七 · 宜乞巧', t:'fest' },
+  { m:7,  d:15, s:'中元',   f:'中元节', t:'fest' },
+  { m:8,  d:15, s:'中秋',   f:'中秋节', t:'fest' },
+  { m:9,  d:9,  s:'重阳',   f:'重阳节', t:'fest' },
+  { m:10, d:1,  s:'送寒衣', f:'十月初一 · 送寒衣', t:'fest' },
+  { m:12, d:8,  s:'腊八',   f:'腊八节', t:'fest' }
+];
+
+var EV_SOLAR = [
+  /* 1 月 */
+  { m:1,  d:1,  s:'元旦',   f:'元旦', t:'fest' },
+  { m:1,  d:8,  s:'周恩来', f:'周恩来逝世纪念日（1976）', t:'mem' },
+  { m:1,  d:12, s:'刘胡兰', f:'刘胡兰纪念日（1947 就义）', t:'mem', n:'“生的伟大，死的光荣”，年龄最小的女烈士' },
+  { m:1,  d:21, s:'列宁',   f:'列宁逝世纪念日（1924）', t:'mem' },
+  { m:1,  d:27, s:'宋庆龄', f:'宋庆龄诞辰（1893）', t:'birth', n:'共和国名誉主席，“国之瑰宝”' },
+  /* 2 月 */
+  { m:2,  d:4,  s:'邓颖超', f:'邓颖超诞辰（1904）', t:'birth' },
+  { m:2,  d:7,  s:'二七',   f:'二七纪念日（1923）', t:'birth', n:'京汉铁路大罢工，中共早期工运起点' },
+  { m:2,  d:23, s:'杨靖宇', f:'杨靖宇纪念日（1940 牺牲）', t:'mem', n:'东北抗联主要创建者' },
+  /* 3 月 */
+  { m:3,  d:5,  s:'学雷锋', f:'学雷锋纪念日', t:'birth' },
+  { m:3,  d:5,  s:'周恩来', f:'周恩来诞辰（1898）', t:'birth' },
+  { m:3,  d:5,  s:'何泽慧', f:'何泽慧诞辰（1914）', t:'birth', n:'核物理学家，“中国居里夫人”，与钱三强共发现铀三分裂、四分裂' },
+  { m:3,  d:7,  s:'竺可桢', f:'竺可桢诞辰（1890）', t:'birth', n:'中国现代气象学、地理学奠基人' },
+  { m:3,  d:8,  s:'妇女节', f:'三八妇女节', t:'fest' },
+  { m:3,  d:13, s:'赖宁',   f:'赖宁纪念日（1988 救火牺牲）', t:'mem', n:'少年英雄，“英雄少年”' },
+  { m:3,  d:14, s:'马克思', f:'马克思逝世纪念日（1883）', t:'mem' },
+  { m:3,  d:18, s:'巴黎公社', f:'巴黎公社纪念日（1871 起义）', t:'birth', n:'人类第一个无产阶级政权尝试' },
+  { m:3,  d:28, s:'高尔基', f:'高尔基诞辰（1868）', t:'birth', n:'苏联文学奠基人' },
+  /* 4 月 */
+  { m:4,  d:22, s:'列宁',   f:'列宁诞辰（1870）', t:'birth' },
+  { m:4,  d:24, s:'航天日', f:'中国航天日', t:'birth', n:'1970 东方红一号发射成功' },
+  /* 5 月 */
+  { m:5,  d:1,  s:'劳动节', f:'国际劳动节', t:'fest' },
+  { m:5,  d:4,  s:'青年节', f:'五四青年节（1919）', t:'fest' },
+  { m:5,  d:5,  s:'马克思', f:'马克思诞辰（1818）', t:'birth' },
+  { m:5,  d:9,  s:'卫国战争', f:'苏联卫国战争胜利纪念日（1945）', t:'mem' },
+  { m:5,  d:14, s:'焦裕禄', f:'焦裕禄纪念日（1964 病逝）', t:'mem', n:'“县委书记的榜样”' },
+  { m:5,  d:28, s:'童第周', f:'童第周诞辰（1902）', t:'birth', n:'实验胚胎学奠基人，“中国克隆之父”' },
+  { m:5,  d:29, s:'宋庆龄', f:'宋庆龄逝世纪念日（1981）', t:'mem' },
+  { m:5,  d:30, s:'五卅',   f:'五卅纪念日（1925）', t:'birth', n:'反帝爱国运动' },
+  /* 6 月 */
+  { m:6,  d:1,  s:'儿童节', f:'六一儿童节', t:'fest' },
+  { m:6,  d:3,  s:'虎门销烟', f:'虎门销烟纪念日（1839）', t:'warn', n:'林则徐开始销烟' },
+  { m:6,  d:25, s:'邓稼先', f:'邓稼先诞辰（1924）', t:'birth', n:'“两弹元勋”' },
+  { m:6,  d:26, s:'禁毒日', f:'国际禁毒日', t:'warn' },
+  /* 7 月 */
+  { m:7,  d:1,  s:'建党节', f:'七一建党节', t:'fest' },
+  { m:7,  d:6,  s:'朱德',   f:'朱德逝世纪念日（1976）', t:'mem' },
+  { m:7,  d:7,  s:'七七',   f:'七七抗战警示日（1937）', t:'warn', n:'卢沟桥事变' },
+  { m:7,  d:11, s:'邓颖超', f:'邓颖超逝世纪念日（1992）', t:'mem' },
+  { m:7,  d:15, s:'秋瑾',   f:'秋瑾纪念日（1907 就义）', t:'mem', n:'“鉴湖女侠”，近代民主革命女先驱' },
+  { m:7,  d:31, s:'731',    f:'731 部队反人类罪行警示日', t:'warn' },
+  /* 8 月 */
+  { m:8,  d:1,  s:'建军节', f:'八一建军节（1927 南昌起义）', t:'fest' },
+  { m:8,  d:2,  s:'赵一曼', f:'赵一曼纪念日（1936 就义）', t:'mem', n:'东北抗日联军女政委' },
+  { m:8,  d:5,  s:'恩格斯', f:'恩格斯逝世纪念日（1895）', t:'mem' },
+  { m:8,  d:19, s:'八一九', f:'苏联八一九事件反思日（1991）', t:'warn' },
+  /* 9 月 */
+  { m:9,  d:3,  s:'抗战胜利', f:'中国抗日战争胜利纪念日（1945）', t:'birth' },
+  { m:9,  d:4,  s:'向警予', f:'向警予诞辰（1895）', t:'birth', n:'中共唯一女创始人，妇女运动领袖' },
+  { m:9,  d:9,  s:'毛泽东', f:'毛泽东逝世纪念日（1976）', t:'mem' },
+  { m:9,  d:18, s:'九一八', f:'九一八警示日（1931）', t:'warn', n:'东北沦陷，多地鸣警报' },
+  { m:9,  d:25, s:'鲁迅',   f:'鲁迅诞辰（1881）', t:'birth' },
+  { m:9,  d:30, s:'烈士纪念', f:'烈士纪念日', t:'mem' },
+  /* 10 月 */
+  { m:10, d:1,  s:'国庆节', f:'十一国庆节', t:'fest' },
+  { m:10, d:10, s:'辛亥革命', f:'辛亥革命纪念日（1911 武昌起义）', t:'birth' },
+  { m:10, d:16, s:'钱三强', f:'钱三强诞辰（1913）', t:'birth', n:'中国原子能科学之父，“两弹一星”元勋' },
+  { m:10, d:19, s:'鲁迅',   f:'鲁迅逝世纪念日（1936）', t:'mem' },
+  { m:10, d:21, s:'缪伯英', f:'缪伯英诞辰（1899）', t:'birth', n:'中共第一位女党员' },
+  { m:10, d:26, s:'李四光', f:'李四光诞辰（1889）', t:'birth', n:'中国地质力学创立者' },
+  /* 11 月 */
+  { m:11, d:7,  s:'十月革命', f:'十月革命节（1917）', t:'birth' },
+  { m:11, d:12, s:'华罗庚', f:'华罗庚诞辰（1910）', t:'birth', n:'中国现代数学之父' },
+  { m:11, d:12, s:'白求恩', f:'白求恩纪念日（1939 逝世）', t:'mem' },
+  { m:11, d:14, s:'江竹筠', f:'江竹筠（江姐）纪念日（1949 就义）', t:'mem', n:'红岩英烈代表' },
+  { m:11, d:28, s:'恩格斯', f:'恩格斯诞辰（1820）', t:'birth' },
+  { m:11, d:29, s:'孔繁森', f:'孔繁森纪念日（1994 殉职）', t:'mem', n:'援藏干部楷模' },
+  /* 12 月 */
+  { m:12, d:1,  s:'朱德',   f:'朱德诞辰（1886）', t:'birth' },
+  { m:12, d:5,  s:'郭永怀', f:'郭永怀纪念日（1968 空难殉职）', t:'mem', n:'“两弹一星”唯一烈士，以生命守护绝密数据' },
+  { m:12, d:9,  s:'一二九', f:'一二·九运动纪念日（1935）', t:'birth', n:'北平学生抗日救亡' },
+  { m:12, d:11, s:'钱学森', f:'钱学森诞辰（1911）', t:'birth', n:'中国航天之父、导弹之父' },
+  { m:12, d:13, s:'公祭日', f:'南京大屠杀死难者国家公祭日', t:'mem' },
+  { m:12, d:23, s:'林巧稚', f:'林巧稚诞辰（1901）', t:'birth', n:'中国妇产科学奠基人' },
+  { m:12, d:25, s:'苏联解体', f:'苏联解体反思日（1991）', t:'warn' },
+  { m:12, d:26, s:'毛泽东', f:'毛泽东诞辰（1893）', t:'birth' }
+];
+
+var EV_RANK = { fest:0, term:1, birth:2, mem:3, warn:4 };
+
+/* 某天的全部事件，按优先级排序 */
+function eventsOf(y, m, d, L){
+  var out = [];
+  var md = pad2(m) + '-' + pad2(d);
+
+  var t = termsOfYear(y)[md];
+  if(t) out.push({ s: t, f: t, t: t === '清明' ? 'fest' : 'term' });
+
+  for(var i = 0; i < EV_SOLAR.length; i++){
+    var e = EV_SOLAR[i];
+    if(e.m === m && e.d === d) out.push(e);
+  }
+  if(L && !L.isLeap){
+    for(var j = 0; j < EV_LUNAR.length; j++){
+      var l = EV_LUNAR[j];
+      if(l.m === L.m && l.d === L.d) out.push(l);
+    }
+  }
+  out.sort(function(a, b){ return EV_RANK[a.t] - EV_RANK[b.t]; });
+  return out;
+}
+
+/* ==================================================================
+   2. 日期工具
+   ================================================================== */
+function pad2(n){ return n < 10 ? '0' + n : '' + n; }
+
+function ymd(dt){
+  return dt.getFullYear() + '-' + pad2(dt.getMonth() + 1) + '-' + pad2(dt.getDate());
+}
+
+function parseYmd(s){
+  var p = String(s).split('-');
+  return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+}
+
+function todayKey(){ return ymd(new Date()); }
+
+function midnight(dt){
+  return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+}
+
+/* 本周一 00:00 */
+function startOfWeek(dt){
+  var x = midnight(dt);
+  var w = (x.getDay() - WEEK_START + 7) % 7;
+  x.setDate(x.getDate() - w);
+  return x;
+}
+
+function daysBetween(a, b){
+  return Math.round((midnight(b) - midnight(a)) / 86400000);
+}
+
+/* ==================================================================
+   3. 数据层
+   ================================================================== */
+var db = emptyDB();
+
+function emptyDB(){ return { v: 1, days: {} }; }
+
+function loadDB(){
+  try{
+    var raw = localStorage.getItem(KEY);
+    if(!raw) return emptyDB();
+    var obj = JSON.parse(raw);
+    if(!obj || typeof obj !== 'object' || !obj.days || typeof obj.days !== 'object') return emptyDB();
+
+    var days = {};
+    var keys = Object.keys(obj.days);
+    for(var i = 0; i < keys.length; i++){
+      var k = keys[i];
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(k)) continue;          // 键名校验
+      var rec = obj.days[k];
+      var arr = (rec && Array.isArray(rec.poms)) ? rec.poms : [];
+      var poms = [];
+      for(var j = 0; j < arr.length && poms.length < MAX_PER_DAY; j++){
+        var p = arr[j];
+        if(!p || typeof p !== 'object') continue;           // 条目校验
+        var t = Number(p.t);
+        poms.push({
+          t: isFinite(t) && t > 0 ? t : 0,
+          n: String(p.n == null ? '' : p.n).slice(0, NOTE_MAX)
+        });
+      }
+      if(poms.length) days[k] = { poms: poms };
+    }
+    return { v: 1, days: days };
+  }catch(e){
+    return emptyDB();
+  }
+}
+
+function saveDB(){
+  try{
+    // 顺手清掉空记录，控制体积
+    var keys = Object.keys(db.days);
+    for(var i = 0; i < keys.length; i++){
+      if(!db.days[keys[i]] || !db.days[keys[i]].poms || !db.days[keys[i]].poms.length){
+        delete db.days[keys[i]];
+      }
+    }
+    localStorage.setItem(KEY, JSON.stringify(db));
+    return true;
+  }catch(e){
+    toast('存档失败：本地存储不可用或已满');
+    return false;
+  }
+}
+
+function pomsOf(key){
+  var rec = db.days[key];
+  return (rec && Array.isArray(rec.poms)) ? rec.poms : [];
+}
+
+function countOf(key){ return pomsOf(key).length; }
+
+function addPom(key, note, t){
+  var arr = pomsOf(key);
+  if(arr.length >= MAX_PER_DAY) return -1;
+  if(!db.days[key]) db.days[key] = { poms: [] };
+  db.days[key].poms.push({ t: t || 0, n: String(note || '').slice(0, NOTE_MAX) });
+  return db.days[key].poms.length - 1;
+}
+
+/* 计时等级（按该计时是当天第几个判断）
+   'n' 绿 1–6 / 'd' 红 7–12 / 'g' 金 13–16 / 'r' 彩 17–20 */
+function levelOf(index1Based){
+  if(index1Based >= RAINBOW_FROM) return 'r';
+  if(index1Based >= GOLD_FROM) return 'g';
+  if(index1Based >= RED_FROM) return 'd';
+  return 'n';
+}
+
+/* ==================================================================
+   4. 计时标识（SVG）
+   ================================================================== */
+/* 荷花：五瓣，用于已完成的格子 */
+function lotusSVG(){
+  // 七瓣展开，内长外短，仿纸币水印的分层花瓣
+  var d = 'M0,-0.5 C0.19,-0.31 0.22,0.12 0,0.5 C-0.22,0.12 -0.19,-0.31 0,-0.5 Z';
+  var spec = [[0,17],[-32,15.5],[32,15.5],[-60,12.5],[60,12.5],[-82,9.2],[82,9.2]];
+  var out = '<svg class="lotus" viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor">';
+  for(var i = 0; i < spec.length; i++){
+    out += '<path d="' + d + '" transform="translate(12,19) rotate(' + spec[i][0] +
+           ') scale(' + spec[i][1] + ') translate(0,-0.5)"/>';
+  }
+  out += '<ellipse cx="12" cy="17.7" rx="2.4" ry="1.5" opacity=".5"/>';
+  return out + '</g></svg>';
+}
+
+/* 计时环外圈的 16 片花瓣 */
+var PETAL_COUNT = 16;
+var petalNodes = [];
+var lastLit = -1;
+
+function buildPetals(){
+  var g = document.getElementById('petals');
+  if(!g) return;
+  var out = '';
+  for(var i = 0; i < PETAL_COUNT; i++){
+    out += '<path class="petal" d="M0,-11 C5.2,-6 5.2,5 0,11 C-5.2,5 -5.2,-6 0,-11 Z" ' +
+           'transform="translate(100,100) rotate(' + (i * (360 / PETAL_COUNT) + 90) + ') translate(0,-86)"/>';
+  }
+  g.innerHTML = out;
+  petalNodes = [];
+  var ps = g.querySelectorAll('path');
+  for(var j = 0; j < ps.length; j++) petalNodes.push(ps[j]);
+  lastLit = -1;
+}
+
+function flowerSVG(cls){
+  return '<svg class="flower ' + (cls || '') + '" viewBox="0 0 24 24" aria-hidden="true">' +
+    '<g fill="#c0392b">' +
+      '<circle cx="12" cy="6.4" r="4.1"/><circle cx="17.6" cy="12" r="4.1"/>' +
+      '<circle cx="12" cy="17.6" r="4.1"/><circle cx="6.4" cy="12" r="4.1"/>' +
+    '</g>' +
+    '<circle cx="12" cy="12" r="3.1" fill="#f0c04a"/>' +
+  '</svg>';
+}
+
+/* ==================================================================
+   5. 计时器
+   ================================================================== */
+var timer = { running: false, endAt: 0, remain: POMO_MS, mode: 'focus' };
+var tickId = null;
+var audioCtx = null;
+
+function loadTimer(){
+  try{
+    var raw = localStorage.getItem(TIMER_KEY);
+    if(!raw) return null;
+    var o = JSON.parse(raw);
+    if(!o || typeof o !== 'object') return null;
+    var remain = Number(o.remain);
+    var endAt = Number(o.endAt);
+    var mode = (o.mode === 'break') ? 'break' : 'focus';
+    var cap = (mode === 'break') ? BREAK_MS : POMO_MS;
+    if(!isFinite(remain) || remain <= 0 || remain > cap) remain = cap;
+    return { running: !!o.running, endAt: isFinite(endAt) ? endAt : 0, remain: remain, mode: mode };
+  }catch(e){ return null; }
+}
+
+function saveTimer(){
+  try{
+    localStorage.setItem(TIMER_KEY, JSON.stringify({
+      running: timer.running, endAt: timer.endAt, remain: timer.remain, mode: timer.mode
+    }));
+  }catch(e){ /* 计时状态存不下不影响主功能 */ }
+}
+
+function clearTimerStore(){
+  try{ localStorage.removeItem(TIMER_KEY); }catch(e){}
+}
+
+function stopLoop(){
+  if(tickId !== null){ clearInterval(tickId); tickId = null; }
+}
+
+function loop(){
+  stopLoop();
+  tickId = setInterval(tickTimer, 250);
+  tickTimer();
+}
+
+function tickTimer(){
+  if(!timer.running){ stopLoop(); return; }
+  var left = timer.endAt - Date.now();
+  if(left <= 0){ if(timer.mode === 'break') completeBreak(); else completePomodoro(); return; }
+  renderTimer(left);
+}
+
+function startTimer(){
+  if(timer.running) return;
+  if(arrivedDay !== todayKey()){ arrivedDay = todayKey(); renderAll(); }
+  if(timer.mode !== 'break' && countOf(todayKey()) >= MAX_PER_DAY){
+    toast('今天的 20 个计时已经满了，明天再来');
+    return;
+  }
+  ensureAudio();
+  playStart();
+  timer.running = true;
+  timer.endAt = Date.now() + timer.remain;
+  saveTimer();
+  loop();
+  renderTimer();
+}
+
+function pauseTimer(){
+  if(!timer.running) return;
+  timer.remain = Math.max(0, timer.endAt - Date.now());
+  timer.running = false;
+  timer.endAt = 0;
+  stopLoop();
+  saveTimer();
+  renderTimer();
+}
+
+function resetTimer(){
+  timer = { running: false, endAt: 0, remain: POMO_MS, mode: 'focus' };
+  stopLoop();
+  clearTimerStore();
+  renderTimer();
+}
+
+function completePomodoro(){
+  stopLoop();
+  timer = { running: false, endAt: 0, remain: POMO_MS };
+  clearTimerStore();
+
+  var key = todayKey();
+  var arr = pomsOf(key);
+
+  if(arr.length >= MAX_PER_DAY){
+    toast('今天已满 20 个计时，这一轮不计数');
+    renderTimer(); renderAll();
+    return;
+  }
+
+  var idx = addPom(key, '', Date.now());
+  saveDB();
+  playFinish();
+
+  // 记完这一轮，计时器切到休息档，等用户点开始
+  timer = { running: false, endAt: 0, remain: BREAK_MS, mode: 'break' };
+  saveTimer();
+
+  renderTimer();
+  renderAll();
+  openNoteModal(key, idx, false);
+  toast('完成 1 个计时 · 第 ' + (idx + 1) + ' 个 · 该休息了');
+}
+
+function completeBreak(){
+  stopLoop();
+  timer = { running: false, endAt: 0, remain: POMO_MS, mode: 'focus' };
+  clearTimerStore();
+  playBreakEnd();
+  renderTimer();
+  toast('休息结束，可以开始下一轮');
+}
+
+function ensureAudio(){
+  if(audioCtx) { if(audioCtx.state === 'suspended') audioCtx.resume(); return; }
+  try{
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if(AC) audioCtx = new AC();
+  }catch(e){ audioCtx = null; }
+}
+
+/* 单声「滴」：频率 freq，起点 when，时长 dur 秒 */
+function beepAt(freq, when, dur, vol){
+  var osc = audioCtx.createOscillator();
+  var gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0.0001, when);
+  gain.gain.exponentialRampToValueAtTime(vol, when + 0.012);   // 快速起音
+  gain.gain.exponentialRampToValueAtTime(0.0001, when + dur);  // 自然衰减
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start(when);
+  osc.stop(when + dur + 0.02);
+}
+
+/* 开始：滴（一声） */
+function playStart(){
+  if(!audioCtx) return;
+  try{ beepAt(880, audioCtx.currentTime, 0.14, 0.13); }catch(e){}
+}
+
+/* 休息结束：两声，比专注结束柔和 */
+function playBreakEnd(){
+  ensureAudio();
+  if(!audioCtx) return;
+  try{
+    var t0 = audioCtx.currentTime;
+    beepAt(660, t0, 0.16, 0.12);
+    beepAt(880, t0 + 0.22, 0.18, 0.12);
+  }catch(e){}
+}
+
+/* 结束：滴滴滴（三声） */
+function playFinish(){
+  if(!audioCtx) return;
+  try{
+    var t0 = audioCtx.currentTime;
+    for(var i = 0; i < 3; i++) beepAt(880, t0 + i * 0.2, 0.13, 0.16);
+  }catch(e){}
+}
+
+function renderTimer(leftMs){
+  if(leftMs === undefined) leftMs = timer.running ? Math.max(0, timer.endAt - Date.now()) : timer.remain;
+  var totalSec = Math.ceil(leftMs / 1000);
+  var mm = Math.floor(totalSec / 60);
+  var ss = totalSec % 60;
+  $('#timeText').textContent = pad2(mm) + ':' + pad2(ss);
+
+  var total = (timer.mode === 'break') ? BREAK_MS : POMO_MS;
+  var progressed = 1 - leftMs / total;
+
+  // 外圈花瓣按进度逐片点亮
+  var lit = Math.floor(progressed * PETAL_COUNT);
+  if(lit !== lastLit){
+    for(var q = 0; q < petalNodes.length; q++){
+      petalNodes[q].classList.toggle('on', q < lit);
+    }
+    lastLit = lit;
+  }
+
+  var C = 2 * Math.PI * 70;
+  $('#ringFg').style.strokeDashoffset = String(C * (1 - Math.max(0, Math.min(1, progressed))));
+
+  var phase = $('#phaseText');
+  var card = $('#timerCard');
+  var btn = $('#btnStart');
+
+  if(timer.mode === 'break'){
+    card.classList.add('breaking');
+    if(timer.running){ phase.textContent = '休息中'; btn.textContent = '暂停'; }
+    else if(leftMs < BREAK_MS){ phase.textContent = '已暂停'; btn.textContent = '继续休息'; }
+    else { phase.textContent = '休息 ' + BREAK_MINUTES + ' 分钟'; btn.textContent = '开始休息'; }
+    btn.disabled = false;
+    return;
+  }
+  card.classList.remove('breaking');
+
+  if(timer.running){
+    card.classList.add('running');
+    phase.textContent = '专注中';
+    btn.textContent = '暂停';
+  } else {
+    card.classList.remove('running');
+    if(leftMs < POMO_MS){ phase.textContent = '已暂停'; btn.textContent = '继续'; }
+    else { phase.textContent = '准备开始'; btn.textContent = '开始专注'; }
+  }
+
+  var full = countOf(todayKey()) >= MAX_PER_DAY;
+  btn.disabled = full && !timer.running;
+  if(full && !timer.running){
+    phase.textContent = '今日已满';
+    btn.textContent = '今日已满';
+  }
+}
+
+/* ==================================================================
+   5b. 石英表盘时钟
+   ================================================================== */
+function buildClockTicks(){
+  var g = document.getElementById('clockTicks');
+  if(!g) return;
+  var out = '';
+
+  // 60 格分针刻度（5 的倍数让位给粗条）
+  for(var i = 0; i < 60; i++){
+    if(i % 5 === 0) continue;
+    out += '<line x1="100" y1="11" x2="100" y2="15.5" transform="rotate(' + (i * 6) + ' 100 100)"' +
+           ' stroke="#a7aeb5" stroke-width="0.75" stroke-linecap="round"/>';
+  }
+
+  // 12 个时刻条，12 点用双条（经典款标志）
+  for(var h = 0; h < 12; h++){
+    if(h === 0){
+      out += '<line x1="100" y1="15" x2="100" y2="34" transform="rotate(-3.4 100 100)" stroke="#33383e" stroke-width="2.9" stroke-linecap="round"/>';
+      out += '<line x1="100" y1="15" x2="100" y2="34" transform="rotate(3.4 100 100)" stroke="#33383e" stroke-width="2.9" stroke-linecap="round"/>';
+    } else {
+      out += '<line x1="100" y1="15" x2="100" y2="34" transform="rotate(' + (h * 30) + ' 100 100)" stroke="#33383e" stroke-width="3.4" stroke-linecap="round"/>';
+    }
+  }
+  g.innerHTML = out;
+}
+
+function rotHand(sel, deg){
+  var el = document.querySelector(sel);
+  if(el) el.setAttribute('transform', 'rotate(' + deg.toFixed(2) + ' 100 100)');
+}
+
+function renderClock(){
+  var d = new Date();
+  var s = d.getSeconds(), mi = d.getMinutes(), h = d.getHours() % 12;
+
+  rotHand('#handSec',  s * 6);              // 石英跳秒
+  rotHand('#handMin',  mi * 6 + s * 0.1);   // 连续走
+  rotHand('#handHour', h * 30 + mi * 0.5);
+
+  var dt = document.getElementById('clockDate');
+  var txt = String(d.getDate());
+  if(dt && dt.textContent !== txt) dt.textContent = txt;
+}
+
+/* 表盘下方：今日已专注时长 */
+function renderClockCaption(){
+  var el = document.getElementById('clockCaption');
+  if(!el) return;
+  var mins = countOf(todayKey()) * MINUTES;
+  var txt;
+  if(mins === 0)        txt = '今日已专注 0 分钟';
+  else if(mins < 60)    txt = '今日已专注 ' + mins + ' 分钟';
+  else {
+    var h = Math.floor(mins / 60), m = mins % 60;
+    txt = '今日已专注 ' + h + ' 小时' + (m ? ' ' + m + ' 分' : '整');
+  }
+  el.textContent = txt;
+}
+
+/* 左栏（计时器 + 表盘）与右栏（今日计时卡）底部对齐 */
+/* 左栏两块（计时器 / 表盘）等高，且底部与右栏对齐 */
+function alignClock(){
+  var left = document.querySelector('.left-col');
+  var timerCard = document.getElementById('timerCard');
+  var clockCard = document.getElementById('clockCard');
+  var right = document.querySelector('.today-card');
+  if(!left || !right || !timerCard || !clockCard) return;
+
+  if(window.innerWidth <= 920){       // 单栏：上下堆叠，不必等高
+    timerCard.style.height = '';
+    clockCard.style.height = '240px';
+    return;
+  }
+
+  timerCard.style.height = '';
+  clockCard.style.height = '';
+
+  var top = left.getBoundingClientRect().top;
+  var bottom = right.getBoundingClientRect().bottom;
+  var total = Math.max(360, Math.round(bottom - top));
+  var each = Math.floor((total - 16) / 2);   // 减去两块之间的间距
+
+  timerCard.style.height = each + 'px';
+  clockCard.style.height = each + 'px';
+}
+
+/* ==================================================================
+   6. 渲染
+   ================================================================== */
+var view = { y: 0, m: 0 };          // 日历当前显示的月份
+var selectedDate = null;            // 详情选中的日期 key
+var arrivedDay = todayKey();        // 用于检测跨天
+
+function $(sel){ return document.querySelector(sel); }
+
+function renderAll(){
+  renderHeader();
+  renderToday();
+  renderCalendar();
+  renderDetail();
+  renderStats();
+  renderCycle();
+  renderTimer();
+  renderClockCaption();
+  alignClock();
+  alignSplit();
+}
+
+/* --- 顶部 --- */
+function renderHeader(){
+  var now = new Date();
+  var l = solar2lunar(now.getFullYear(), now.getMonth() + 1, now.getDate());
+  $('#hdDate').textContent = now.getFullYear() + '年' + (now.getMonth() + 1) + '月' + now.getDate() + '日';
+  $('#hdWeek').textContent = WEEK_CN[now.getDay()];
+  $('#hdLunar').textContent = l
+    ? ('农历 ' + l.text + ' · ' + ganzhiLine(now.getFullYear(), now.getMonth() + 1, now.getDate(), l))
+    : '农历 —';
+  $('#hdFlower').innerHTML = countOf(todayKey()) >= MIN_PER_DAY ? flowerSVG('bloom') : '';
+  $('#hdToday').textContent = String(countOf(todayKey()));
+  $('#hdStreak').textContent = String(computeStreak());
+}
+
+/* --- 今日计时格 --- */
+function renderToday(){
+  var key = todayKey();
+  var n = countOf(key);
+  var arr = pomsOf(key);
+
+  $('#todayCount').textContent = String(n);
+  $('#bar').style.width = (n / MAX_PER_DAY * 100) + '%';
+
+  var badges = [];
+  if(n >= MIN_PER_DAY) badges.push('<span class="badge">' + flowerSVG() + ' 已达标</span>');
+  // 阶段徽章只显示最高一级
+  if(n >= RAINBOW_FROM)   badges.push('<span class="badge purple">紫红阶段</span>');
+  else if(n >= GOLD_FROM) badges.push('<span class="badge deep">深红阶段</span>');
+  else if(n >= RED_FROM)  badges.push('<span class="badge crimson">绯红阶段</span>');
+  if(n === 0) badges.push('<span class="badge" style="background:#f4efe5;color:#a89e8d">今天还没开始</span>');
+  $('#todayBadges').innerHTML = badges.join('');
+
+  var html = '';
+  for(var i = 0; i < MAX_PER_DAY; i++){
+    var done = i < n;
+    var lv = levelOf(i + 1);
+    var cls = 'slot';
+    if(done){
+      cls += ' done';
+      if(lv === 'd') cls += ' red';
+      if(lv === 'g') cls += ' gold';
+      if(lv === 'r') cls += ' rainbow';
+    }
+    var hasNote = done && arr[i] && arr[i].n;
+    var title = done ? ('第 ' + (i + 1) + ' 朵' + (hasNote ? '：' + arr[i].n : '（未写说明）')) : ('第 ' + (i + 1) + ' 朵 · 点击补记');
+    html += '<button class="' + cls + '" data-slot="' + i + '" title="' + escAttr(title) + '">' +
+              (done ? lotusSVG() : (i + 1)) +
+              (hasNote ? '<i class="note-dot"></i>' : '') +
+            '</button>';
+  }
+  $('#slots').innerHTML = html;
+}
+
+/* --- 日历 --- */
+/* ---------- 月相 ----------
+   农历日 1 → 新月，15/16 → 满月，30 → 回到新月。
+   相位 d ∈ [0,1]；明暗分界线是一条半短轴为 |cos(2πd)|·r 的椭圆弧。 */
+function moonPhase(ld){
+  var d = (ld - 1) / 29;
+  return d < 0 ? 0 : (d > 1 ? 1 : d);
+}
+
+function moonPhaseName(ld){
+  var d = moonPhase(ld);
+  if(d < 0.03 || d > 0.97) return '新月';
+  if(d < 0.22) return '娥眉月';
+  if(d < 0.28) return '上弦月';
+  if(d < 0.47) return '盈凸月';
+  if(d < 0.53) return '满月';
+  if(d < 0.72) return '亏凸月';
+  if(d < 0.78) return '下弦月';
+  return '残月';
+}
+
+function moonSVG(ld){
+  var d = moonPhase(ld);
+  var r = 5, cx = 10, cy = 10;
+  var k = Math.cos(2 * Math.PI * d);
+  var rx = Math.abs(k) * r;
+  var outer = (d < 0.5) ? 1 : 0;              // 亮面所在半圆
+  var inner = (k > 0) ? (1 - outer) : outer;  // 明暗分界弧的绕向
+
+  var path = 'M ' + cx + ' ' + (cy - r) +
+             ' A ' + r + ' ' + r + ' 0 0 ' + outer + ' ' + cx + ' ' + (cy + r) +
+             ' A ' + rx.toFixed(2) + ' ' + r + ' 0 0 ' + inner + ' ' + cx + ' ' + (cy - r) + ' Z';
+
+  return '<svg class="moon" viewBox="0 0 20 20" aria-hidden="true">' +
+           '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#a2967f"/>' +
+           '<path d="' + path + '" fill="#ffffff"/>' +
+           '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" ' +
+                   'stroke="#8c8171" stroke-width="0.7" opacity=".55"/>' +
+         '</svg>';
+}
+
+function renderCalendar(){
+  $('#calWeek').innerHTML = WEEK_HD.map(function(w, i){
+    var isWe = (i + WEEK_START) % 7 === 0 || (i + WEEK_START) % 7 === 6;
+    return '<div class="' + (isWe ? 'we' : '') + '">' + w + '</div>';
+  }).join('');
+
+  var y = view.y, m = view.m;               // m: 1–12
+  $('#calTitle').textContent = y + '年' + m + '月';
+
+  var first = new Date(y, m - 1, 1);
+  var lead = (first.getDay() - WEEK_START + 7) % 7;
+  var total = new Date(y, m, 0).getDate();
+  var tKey = todayKey();
+
+  var cells = [];
+  for(var i = 0; i < lead; i++) cells.push('<div class="cal-day blank"></div>');
+
+  for(var d = 1; d <= total; d++){
+    var dt = new Date(y, m - 1, d);
+    var k = ymd(dt);
+    var c = countOf(k);
+    var cls = ['cal-day'];
+    if(k === tKey) cls.push('today');
+    if(k === selectedDate) cls.push('sel');
+    if(dt > midnight(new Date())) cls.push('future');
+    var lv = c >= RAINBOW_FROM ? 'rain' : (c >= GOLD_FROM ? 'gold' : (c >= RED_FROM ? 'red' : ''));
+    if(lv) cls.push(lv);
+
+    var mini = c > 0
+      ? '<span class="mini"><i style="width:' + Math.min(100, Math.round(c / MAX_PER_DAY * 100)) + '%"></i></span>'
+      : '';
+    var cf = c >= MIN_PER_DAY ? '<span class="cf">' + flowerSVG() + '</span>' : '';
+
+    var L = solar2lunar(y, m, d);
+    var moon = L ? moonSVG(L.d) : '';
+    var evs = eventsOf(y, m, d, L);
+
+    var clHtml = evs.length
+      ? '<span class="cl ' + evs[0].t + '">' + escHtml(evs[0].s) + '</span>'
+      : '<span class="cl">' + (L ? (L.d === 1 ? L.monthCn : L.dayCn) : '') + '</span>';
+    var evTip = evs.length ? ' · ' + evs.map(function(e){ return e.f; }).join(' / ') : '';
+
+    cells.push(
+      '<button class="' + cls.join(' ') + '" data-date="' + k + '" title="' +
+        escAttr(y + '年' + m + '月' + d + '日 ' + WEEK_CN[dt.getDay()] +
+                ' · 农历' + (L ? L.text : '') +
+                (L ? ' · ' + ganzhiLine(y, m, d, L) : '') + evTip +
+                ' · ' + (L ? moonPhaseName(L.d) : '') +
+                ' · ' + c + ' 朵花') +
+      '">' +
+        moon +
+        cf +
+        '<span class="cn">' + d + '</span>' +
+        clHtml +
+        mini +
+      '</button>'
+    );
+  }
+
+  // 补满整行
+  while(cells.length % 7 !== 0) cells.push('<div class="cal-day blank"></div>');
+  $('#calGrid').innerHTML = cells.join('');
+}
+
+/* --- 某日详情 --- */
+function renderDetail(){
+  if(!selectedDate) selectedDate = todayKey();
+
+  var dt = parseYmd(selectedDate);
+  var l = solar2lunar(dt.getFullYear(), dt.getMonth() + 1, dt.getDate());
+  var n = countOf(selectedDate);
+  var arr = pomsOf(selectedDate);
+  var isToday = selectedDate === todayKey();
+  var isFuture = dt > midnight(new Date());
+
+  $('#detailTitle').innerHTML =
+    (dt.getMonth() + 1) + '月' + dt.getDate() + '日 ' + WEEK_CN[dt.getDay()] +
+    (n >= MIN_PER_DAY ? ' ' + flowerSVG() : '');
+
+  var sub = '农历 ' + (l ? l.text : '—') +
+            (l ? ' · ' + ganzhiLine(dt.getFullYear(), dt.getMonth() + 1, dt.getDate(), l) : '') +
+            ' · ' + n + ' 个计时';
+  if(n >= MIN_PER_DAY) sub += ' · 已达标';
+  else if(n > 0) sub += ' · 距达标还差 ' + (MIN_PER_DAY - n) + ' 个';
+  else sub += ' · 未开始';
+  if(isToday) sub += ' · 今天';
+  $('#detailSub').textContent = sub;
+
+  // 当日节日 / 节气 / 纪念日
+  var evs = eventsOf(dt.getFullYear(), dt.getMonth() + 1, dt.getDate(), l);
+  var evHtml = '';
+  if(evs.length){
+    evHtml += '<div class="ev-list">' + evs.map(function(e){
+      return '<span class="ev ' + e.t + '">' + escHtml(e.f) + '</span>';
+    }).join('') + '</div>';
+    var notes = [];
+    for(var q = 0; q < evs.length; q++) if(evs[q].n) notes.push(evs[q]);
+    if(notes.length){
+      evHtml += '<p class="ev-notes">' + notes.map(function(e){
+        return '<b>' + escHtml(e.s) + '</b>：' + escHtml(e.n);
+      }).join('<br>') + '</p>';
+    }
+  }
+  $('#detailEvents').innerHTML = evHtml;
+
+  var addBtn = $('#btnAddPom');
+  addBtn.style.display = (!isFuture && n < MAX_PER_DAY) ? '' : 'none';
+
+  if(!arr.length){
+    $('#pomList').innerHTML = '<div class="empty-tip">这一天还没有计时记录</div>';
+    return;
+  }
+
+  var html = '';
+  for(var i = 0; i < arr.length; i++){
+    var p = arr[i];
+    var lv = levelOf(i + 1);
+    var cls = 'pom-row' + (lv === 'd' ? ' red' : (lv === 'g' ? ' gold' : (lv === 'r' ? ' rain' : '')));
+    var timeTxt = p.t ? fmtTime(p.t) : '补记';
+    html += '<div class="' + cls + '" data-edit="' + i + '">' +
+              '<div class="idx">' + (i + 1) + '</div>' +
+              '<div class="body">' +
+                '<div class="note' + (p.n ? '' : ' empty') + '">' + (p.n ? escHtml(p.n) : '（未写说明，点击添加）') + '</div>' +
+                '<div class="meta">' + timeTxt + ' · ' + MINUTES + ' 分钟</div>' +
+              '</div>' +
+            '</div>';
+  }
+  $('#pomList').innerHTML = html;
+}
+
+/* --- 统计 --- */
+function allCounts(){
+  var keys = Object.keys(db.days);
+  var list = [];
+  for(var i = 0; i < keys.length; i++){
+    list.push({ key: keys[i], n: countOf(keys[i]) });
+  }
+  list.sort(function(a, b){ return a.key < b.key ? -1 : 1; });
+  return list;
+}
+
+function computeStreak(){
+  // 从今天往前数，连续「≥6 个」的天数；今天未达标则从昨天开始算
+  var d = midnight(new Date());
+  if(countOf(ymd(d)) < MIN_PER_DAY) d.setDate(d.getDate() - 1);
+  var streak = 0, guard = 0;
+  while(guard++ < 4000){
+    var k = ymd(d);
+    if(countOf(k) >= MIN_PER_DAY){ streak++; d.setDate(d.getDate() - 1); }
+    else break;
+  }
+  return streak;
+}
+
+function renderStats(){
+  var list = allCounts();
+  var total = 0, meetDays = 0, best = 0, run = 0;
+  var prev = null;
+
+  for(var i = 0; i < list.length; i++){
+    var it = list[i];
+    total += it.n;
+    if(it.n >= MIN_PER_DAY){
+      meetDays++;
+      if(prev && daysBetween(parseYmd(prev), parseYmd(it.key)) === 1) run++;
+      else run = 1;
+      if(run > best) best = run;
+      prev = it.key;
+    } else {
+      run = 0;
+      prev = null;
+    }
+  }
+
+  $('#stTotal').textContent = String(total);
+  $('#stHours').textContent = (total * MINUTES / 60).toFixed(1) + 'h';
+  $('#stDays').textContent = String(meetDays);
+  $('#stBest').textContent = String(best);
+
+  // 本周（周一起）
+  var ws = startOfWeek(new Date());
+  var weekTotal = 0;
+  for(var j = 0; j < 7; j++){
+    var dd = new Date(ws.getFullYear(), ws.getMonth(), ws.getDate() + j);
+    weekTotal += countOf(ymd(dd));
+  }
+  $('#stWeek').textContent = String(weekTotal);
+
+  // 本月达标率 = 本月达标天数 / 本月已过天数
+  var now = new Date();
+  var passed = now.getDate();
+  var meetThisMonth = 0;
+  for(var d = 1; d <= passed; d++){
+    if(countOf(ymd(new Date(now.getFullYear(), now.getMonth(), d))) >= MIN_PER_DAY) meetThisMonth++;
+  }
+  $('#stRate').textContent = Math.round(meetThisMonth / passed * 100) + '%';
+}
+
+/* ==================================================================
+   6b. 52 周总结
+   ================================================================== */
+var cycleCache = null;
+
+function fmtDateCn(key){
+  var d = parseYmd(key);
+  return (d.getMonth() + 1) + '月' + d.getDate() + '日';
+}
+function fmtYmdDot(key){
+  var d = parseYmd(key);
+  return d.getFullYear() + '.' + pad2(d.getMonth() + 1) + '.' + pad2(d.getDate());
+}
+function stripHtml(s){
+  return String(s).replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&');
+}
+
+/* 52 周为一期。锚点 = 第一条记录所在周的周一（无记录则本周） */
+var cycleView = -1;   // -1 表示跟随当前期
+
+var CYCLE_START = '2026-10-24';   // 第一期第一天
+
+function cycleBounds(want){
+  var anchor = parseYmd(CYCLE_START);
+  var today0 = midnight(new Date());
+
+  var passed = daysBetween(anchor, today0);
+  var curIdx = Math.max(0, Math.floor(passed / 364));
+
+  var idx = (want === undefined || want === null) ? curIdx : want;
+  idx = Math.max(0, Math.min(idx, curIdx));
+
+  var cs = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() + idx * 364);
+  var ce = new Date(cs.getFullYear(), cs.getMonth(), cs.getDate() + 363);
+  return { idx: idx, curIdx: curIdx, cs: cs, ce: ce, today: today0 };
+}
+
+function renderCycle(){
+  var b = cycleBounds(cycleView < 0 ? null : cycleView);
+  var cs = b.cs, ce = b.ce, idx = b.idx;
+  var today0 = b.today;
+
+  // 往期按满 364 天计，当期按已过天数计
+  var elapsed = (idx < b.curIdx) ? 364 : (daysBetween(cs, today0) + 1);
+  if(elapsed < 0) elapsed = 0;
+  if(elapsed > 364) elapsed = 364;
+
+  $('#cyPrev').disabled = idx <= 0;
+  $('#cyNext').disabled = idx >= b.curIdx;
+
+  var total = 0, meet = 0, run = 0, bestRun = 0, bestN = 0, bestKey = null;
+  var wk = [];
+  for(var i = 0; i < 52; i++) wk.push(0);
+
+  for(var d = 0; d < elapsed; d++){
+    var dt = new Date(cs.getFullYear(), cs.getMonth(), cs.getDate() + d);
+    var n = countOf(ymd(dt));
+    if(n > 0) wk[Math.floor(d / 7)] += n;
+    if(n >= MIN_PER_DAY){ meet++; run++; if(run > bestRun) bestRun = run; }
+    else { run = 0; }
+    if(n > bestN){ bestN = n; bestKey = ymd(dt); }
+    total += n;
+  }
+  var rate = elapsed > 0 ? Math.round(meet / elapsed * 100) : 0;
+
+  $('#cycleNo').textContent = '第 ' + (idx + 1) + ' 期';
+  $('#cycleRange').textContent = fmtYmdDot(ymd(cs)) + ' → ' + fmtYmdDot(ymd(ce));
+  $('#cyTotal').textContent = String(total);
+  $('#cyHours').textContent = (total * MINUTES / 60).toFixed(1) + 'h';
+  $('#cyRate').textContent = rate + '%';
+  $('#cyRun').textContent = String(bestRun);
+
+  // 52 格周条
+  var cells = '';
+  for(var w = 0; w < 52; w++){
+    var sd = new Date(cs.getFullYear(), cs.getMonth(), cs.getDate() + w * 7);
+    var v = wk[w];
+    var lv = v === 0 ? '' : (v >= 76 ? ' l4' : v >= 51 ? ' l3' : v >= 26 ? ' l2' : ' l1');
+    var isFuture = sd > today0;
+    cells += '<i class="wk' + lv + (isFuture ? ' future' : '') + '" title="' +
+      escAttr('第 ' + (w + 1) + ' 周 · ' + fmtYmdDot(ymd(sd)) + ' 起 · ' + v + ' 朵花') + '"></i>';
+  }
+  $('#weekStrip').innerHTML = cells;
+
+  // 自动总结
+  var txt;
+  if(total === 0){
+    txt = '第 ' + (idx + 1) + ' 期刚刚开始。从今天起，每一个 ' + MINUTES + ' 分钟都会记进这一期；' +
+          '走完第 <em>52</em> 周时，这里就是一篇完整的总结。';
+  } else {
+    var mins = total * MINUTES;
+    var hh = Math.floor(mins / 60), mm = mins % 60;
+    var dur = hh > 0 ? (hh + ' 小时' + (mm ? ' ' + mm + ' 分' : '整')) : (mins + ' 分钟');
+
+    txt = '第 ' + (idx + 1) + ' 期已过 <em>' + elapsed + '</em> 天，共完成 <em>' + total +
+          '</em> 个计时，累计专注 <em>' + dur + '</em>。';
+    txt += '其中 <em>' + meet + '</em> 天达标，达标率 <em>' + rate + '%</em>。';
+    if(bestRun > 0) txt += '最长连续达标 <em>' + bestRun + '</em> 天。';
+    if(bestKey) txt += '最拼的一天是 ' + fmtDateCn(bestKey) + '，完成了 <em>' + bestN + '</em> 个计时。';
+    txt += elapsed >= 364
+      ? '本期走完 52 周，总结自动归档。'
+      : '本期还剩 <em>' + (364 - elapsed) + '</em> 天。';
+  }
+  $('#cycleText').innerHTML = txt;
+
+  cycleCache = { idx: idx, cs: cs, ce: ce, elapsed: elapsed, total: total,
+                 meet: meet, rate: rate, bestRun: bestRun, bestN: bestN,
+                 bestKey: bestKey, wk: wk, text: stripHtml(txt) };
+}
+
+function exportCycle(){
+  if(!cycleCache) renderCycle();
+  var c = cycleCache;
+  var today0 = midnight(new Date());
+  var out = [];
+
+  out.push('52打卡 · 第 ' + (c.idx + 1) + ' 期  52 周总结');
+  out.push(fmtYmdDot(ymd(c.cs)) + ' — ' + fmtYmdDot(ymd(c.ce)));
+  out.push('');
+  out.push('总计时        ' + c.total + ' 个');
+  out.push('累计专注      ' + (c.total * MINUTES) + ' 分钟（' + (c.total * MINUTES / 60).toFixed(1) + ' 小时）');
+  out.push('已过天数      ' + c.elapsed + ' / 364');
+  out.push('达标天数      ' + c.meet + ' 天');
+  out.push('达标率        ' + c.rate + '%');
+  out.push('最长连续      ' + c.bestRun + ' 天');
+  if(c.bestKey) out.push('最佳单日      ' + fmtDateCn(c.bestKey) + '（' + c.bestN + ' 个计时）');
+  out.push('');
+  out.push(c.text);
+  out.push('');
+  out.push('—— 周明细 ——');
+  for(var w = 0; w < 52; w++){
+    var sd = new Date(c.cs.getFullYear(), c.cs.getMonth(), c.cs.getDate() + w * 7);
+    if(sd > today0) break;
+    out.push('第 ' + pad2(w + 1) + ' 周  ' + fmtYmdDot(ymd(sd)) + ' 起   ' + c.wk[w] + ' 朵花');
+  }
+
+  download('惜时-第' + (c.idx + 1) + '期总结.txt', out.join('\r\n'), 'text/plain');
+  toast('已导出第 ' + (c.idx + 1) + ' 期总结');
+}
+
+/* 日志栏高度对齐日历栏 */
+function alignSplit(){
+  var cal = document.querySelector('.cal-pane');
+  var log = document.querySelector('.log-pane');
+  if(!cal || !log) return;
+  if(window.innerWidth <= 820){ log.style.height = 'auto'; return; }
+  log.style.height = cal.getBoundingClientRect().height + 'px';
+}
+
+/* ==================================================================
+   7. 弹窗
+   ================================================================== */
+var modalCtx = null;   // {key, index, isNew}
+
+function openNoteModal(key, index, isNew){
+  var arr = pomsOf(key);
+  var p = arr[index];
+  modalCtx = { key: key, index: index, isNew: !!isNew };
+
+  var dt = parseYmd(key);
+  var l = solar2lunar(dt.getFullYear(), dt.getMonth() + 1, dt.getDate());
+
+  $('#mTitle').textContent = isNew ? '补记一个计时' : '第 ' + (index + 1) + ' 个计时';
+  $('#mSub').textContent = (dt.getMonth() + 1) + '月' + dt.getDate() + '日 ' +
+                           WEEK_CN[dt.getDay()] + ' · 农历' + (l ? l.text : '—') +
+                           (isNew ? '' : ' · ' + (p.t ? fmtTime(p.t) : '补记'));
+
+  var input = $('#mInput');
+  input.value = (!isNew && p) ? p.n : '';
+  updateCount();
+  $('#modal').hidden = false;
+  setTimeout(function(){ input.focus(); input.setSelectionRange(input.value.length, input.value.length); }, 30);
+}
+
+function closeModal(){
+  $('#modal').hidden = true;
+  modalCtx = null;
+}
+
+function updateCount(){
+  $('#mCount').textContent = $('#mInput').value.length + ' / ' + NOTE_MAX;
+}
+
+function saveModal(){
+  if(!modalCtx) return;
+  var note = $('#mInput').value.slice(0, NOTE_MAX).replace(/\s+$/g, '');
+  var key = modalCtx.key;
+
+  if(modalCtx.isNew){
+    var t = (key === todayKey()) ? Date.now() : 0;
+    var idx = addPom(key, note, t);
+    if(idx < 0){ toast('这一天已经有 20 个计时了'); closeModal(); return; }
+    if(countOf(key) === MIN_PER_DAY) toast('🌸 达标！日期上长出一朵小红花');
+  } else {
+    var arr = pomsOf(key);
+    if(arr[modalCtx.index]) arr[modalCtx.index].n = note;
+  }
+
+  saveDB();
+  closeModal();
+  renderAll();
+}
+
+/* ==================================================================
+   8. 导入导出
+   ================================================================== */
+function download(filename, text, mime){
+  try{
+    var blob = new Blob([text], { type: mime + ';charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+    return true;
+  }catch(e){
+    toast('导出失败：' + e.message);
+    return false;
+  }
+}
+
+function exportJSON(){
+  saveDB();
+  var out = {
+    app: '惜时',
+    author: '始于北海',
+    schema: 'pomo.checkin',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    rule: { pomodoroMinutes: 25, maxPerDay: MAX_PER_DAY, minPerDay: MIN_PER_DAY,
+            goldFrom: GOLD_FROM, rainbowFrom: RAINBOW_FROM, noteMax: NOTE_MAX },
+    days: db.days
+  };
+  download('惜时-' + todayKey() + '.json', JSON.stringify(out, null, 2), 'application/json');
+  toast('已导出 JSON');
+}
+
+function csvCell(v){
+  var s = String(v == null ? '' : v);
+  if(/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+
+function exportCSV(){
+  saveDB();
+  var rows = [['日期','星期','农历','节气','纪念日','计时数','专注分钟','是否达标','等级','说明']];
+  var keys = Object.keys(db.days).sort();
+  var total = 0;
+
+  for(var i = 0; i < keys.length; i++){
+    var k = keys[i];
+    var n = countOf(k);
+    var dt = parseYmd(k);
+    var l = solar2lunar(dt.getFullYear(), dt.getMonth() + 1, dt.getDate());
+    var lv = n >= RAINBOW_FROM ? '紫红' : (n >= GOLD_FROM ? '深红' : (n >= RED_FROM ? '绯红' : '淡粉'));
+    var notes = [];
+    var arr = pomsOf(k);
+    for(var j = 0; j < arr.length; j++){
+      if(arr[j].n) notes.push((j + 1) + '.' + arr[j].n);
+    }
+    var evs = eventsOf(dt.getFullYear(), dt.getMonth() + 1, dt.getDate(), l);
+    var terms = [], fams = [];
+    for(var e = 0; e < evs.length; e++){
+      if(evs[e].t === 'term') terms.push(evs[e].f); else fams.push(evs[e].f);
+    }
+    total += n;
+    rows.push([
+      k,
+      WEEK_CN[dt.getDay()],
+      l ? l.text : '',
+      terms.join('/'),
+      fams.join('/'),
+      n,
+      n * MINUTES,
+      n >= MIN_PER_DAY ? '是' : '否',
+      lv,
+      notes.join(' | ')
+    ]);
+  }
+
+  if(rows.length === 1) rows.push(['（暂无数据）','','','','','','','','','']);
+
+  var csv = '\uFEFF' + rows.map(function(r){
+    return r.map(csvCell).join(',');
+  }).join('\r\n');
+
+  download('惜时-' + todayKey() + '.csv', csv, 'text/csv');
+  toast('已导出 CSV · 共 ' + total + ' 朵花');
+}
+
+function validateImport(obj){
+  if(!obj || typeof obj !== 'object') return null;
+  var src = obj.days && typeof obj.days === 'object' ? obj.days : null;
+  if(!src) return null;
+
+  var days = {};
+  var keys = Object.keys(src);
+  var ok = 0;
+
+  for(var i = 0; i < keys.length; i++){
+    var k = keys[i];
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(k)) continue;
+    var rec = src[k];
+    var arr = (rec && Array.isArray(rec.poms)) ? rec.poms : null;
+    if(!arr) continue;
+    var poms = [];
+    for(var j = 0; j < arr.length && poms.length < MAX_PER_DAY; j++){
+      var p = arr[j];
+      if(!p || typeof p !== 'object') continue;
+      var t = Number(p.t);
+      poms.push({ t: isFinite(t) && t > 0 ? t : 0, n: String(p.n == null ? '' : p.n).slice(0, NOTE_MAX) });
+    }
+    if(poms.length){ days[k] = { poms: poms }; ok++; }
+  }
+  return ok ? days : null;
+}
+
+function handleImportFile(file){
+  if(!file) return;
+  if(file.size > 5 * 1024 * 1024){ toast('文件过大（>5MB）'); return; }
+
+  var reader = new FileReader();
+  reader.onload = function(){
+    try{
+      var obj = JSON.parse(String(reader.result));
+      var days = validateImport(obj);
+      if(!days){ toast('文件格式不对，导入失败'); return; }
+
+      var n = Object.keys(days).length;
+      if(!confirm('将导入 ' + n + ' 天的记录。\n同一天的旧记录会被覆盖，未涉及的日期保留。\n\n继续吗？')) return;
+
+      var merge = Object.keys(days);
+      for(var i = 0; i < merge.length; i++){
+        db.days[merge[i]] = days[merge[i]];
+      }
+      saveDB();
+      renderAll();
+      toast('导入完成 · ' + n + ' 天');
+    }catch(e){
+      toast('解析失败：不是有效的 JSON');
+    }
+  };
+  reader.onerror = function(){ toast('读取文件失败'); };
+  reader.readAsText(file, 'utf-8');
+}
+
+/* ==================================================================
+   9. 工具函数
+   ================================================================== */
+function fmtTime(ts){
+  var d = new Date(ts);
+  return pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+}
+
+function escHtml(s){
+  return String(s).replace(/[&<>"']/g, function(c){
+    return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+  });
+}
+
+function escAttr(s){ return escHtml(s); }
+
+var toastId = null;
+function toast(msg){
+  var el = $('#toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  if(toastId) clearTimeout(toastId);
+  toastId = setTimeout(function(){ el.classList.remove('show'); }, 2400);
+}
+
+/* ==================================================================
+   10. 事件绑定
+   ================================================================== */
+function bind(){
+  // 计时器
+  $('#btnStart').addEventListener('click', function(){
+    if(timer.running) pauseTimer(); else startTimer();
+  });
+  $('#btnReset').addEventListener('click', function(){
+    if(timer.running || timer.remain < POMO_MS){
+      if(!confirm('重置当前计时？已进行的计时不会记录。')) return;
+    }
+    resetTimer();
+  });
+
+  // 计时格
+  $('#slots').addEventListener('click', function(e){
+    var btn = e.target.closest('[data-slot]');
+    if(!btn) return;
+    var i = Number(btn.getAttribute('data-slot'));
+    var key = todayKey();
+    var n = countOf(key);
+    if(i < n){
+      openNoteModal(key, i, false);
+    } else {
+      if(n >= MAX_PER_DAY){ toast('今天已满 20 个计时'); return; }
+      openNoteModal(key, i, true);
+      // 补记固定落在当前序号
+    }
+  });
+
+  // 日历
+  $('#calPrev').addEventListener('click', function(){
+    view.m--;
+    if(view.m < 1){ view.m = 12; view.y--; }
+    renderCalendar();
+  });
+  $('#calNext').addEventListener('click', function(){
+    view.m++;
+    if(view.m > 12){ view.m = 1; view.y++; }
+    renderCalendar();
+  });
+
+  $('#calGrid').addEventListener('click', function(e){
+    var btn = e.target.closest('[data-date]');
+    if(!btn) return;
+    selectedDate = btn.getAttribute('data-date');
+    renderCalendar();
+    renderDetail();
+    $('#detailCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+
+  // 详情
+  $('#btnAddPom').addEventListener('click', function(){
+    if(!selectedDate) return;
+    var n = countOf(selectedDate);
+    if(n >= MAX_PER_DAY){ toast('这一天已经 20 个计时了'); return; }
+    openNoteModal(selectedDate, n, true);
+  });
+
+  $('#pomList').addEventListener('click', function(e){
+    var row = e.target.closest('[data-edit]');
+    if(!row || !selectedDate) return;
+    openNoteModal(selectedDate, Number(row.getAttribute('data-edit')), false);
+  });
+
+  // 弹窗
+  $('#mCancel').addEventListener('click', closeModal);
+  $('#mSave').addEventListener('click', saveModal);
+  $('#mInput').addEventListener('input', updateCount);
+  $('#modal').addEventListener('click', function(e){
+    if(e.target === $('#modal')) closeModal();
+  });
+
+  document.addEventListener('keydown', function(e){
+    if(!$('#modal').hidden){
+      if(e.key === 'Escape'){ e.preventDefault(); closeModal(); }
+      if((e.metaKey || e.ctrlKey) && e.key === 'Enter'){ e.preventDefault(); saveModal(); }
+      return;
+    }
+    var tag = (e.target.tagName || '').toLowerCase();
+    if(tag === 'input' || tag === 'textarea' || tag === 'button') return;
+    if(e.code === 'Space'){
+      e.preventDefault();
+      if(timer.running) pauseTimer(); else startTimer();
+    }
+  });
+
+  // 导出 / 导入 / 清空
+  $('#btnExportJson').addEventListener('click', exportJSON);
+  $('#btnExportCsv').addEventListener('click', exportCSV);
+  $('#btnCycleExport').addEventListener('click', exportCycle);
+
+  // 52 周总结翻期
+  $('#cyPrev').addEventListener('click', function(){
+    var cur = cycleBounds().curIdx;
+    var v = cycleView < 0 ? cur : cycleView;
+    if(v > 0){ cycleView = v - 1; renderCycle(); }
+  });
+  $('#cyNext').addEventListener('click', function(){
+    var cur = cycleBounds().curIdx;
+    var v = cycleView < 0 ? cur : cycleView;
+    var n = v + 1;
+    cycleView = (n >= cur) ? -1 : n;
+    renderCycle();
+  });
+  $('#btnImport').addEventListener('click', function(){ $('#fileInput').click(); });
+  $('#fileInput').addEventListener('change', function(e){
+    var f = e.target.files && e.target.files[0];
+    handleImportFile(f);
+    e.target.value = '';
+  });
+  $('#btnClear').addEventListener('click', function(){
+    if(!confirm('确定清空全部打卡记录？此操作不可撤销，建议先导出 JSON 备份。')) return;
+    if(!confirm('再确认一次：所有计时记录都会被删除。')) return;
+    db = emptyDB();
+    try{ localStorage.removeItem(KEY); }catch(e){}
+    clearTimerStore();
+    selectedDate = null;
+    resetTimer();
+    renderAll();
+    toast('已清空');
+  });
+
+  // 跨天检测 + 页面可见性
+  setInterval(function(){
+    var k = todayKey();
+    if(k !== arrivedDay){
+      arrivedDay = k;
+      view.y = new Date().getFullYear();
+      view.m = new Date().getMonth() + 1;
+      renderAll();
+    }
+  }, 30000);
+
+  document.addEventListener('visibilitychange', function(){
+    if(!document.hidden && timer.running){
+      tickTimer();   // 回到页面时立刻校正（不依赖后台定时器）
+    }
+    if(!document.hidden){ renderClock(); alignClock(); }
+  });
+
+  // 窗口尺寸变化后重新对齐表盘
+  var rzId = null;
+  window.addEventListener('resize', function(){
+    if(rzId) clearTimeout(rzId);
+    rzId = setTimeout(function(){ alignClock(); alignSplit(); }, 120);
+  });
+
+  // 离开前尽量落盘
+  window.addEventListener('beforeunload', function(){ saveDB(); });
+}
+
+/* ==================================================================
+   11. 启动
+   ================================================================== */
+function init(){
+  db = loadDB();
+
+  var now = new Date();
+  view.y = now.getFullYear();
+  view.m = now.getMonth() + 1;
+  selectedDate = todayKey();
+  arrivedDay = todayKey();
+
+  // 恢复计时器（仅限 6 小时以内，避免隔夜误记）
+  var saved = loadTimer();
+  if(saved && saved.running && saved.endAt > 0){
+    var cap = (saved.mode === 'break') ? BREAK_MS : POMO_MS;
+    if(Date.now() - saved.endAt < 6 * 3600 * 1000 && saved.endAt - Date.now() <= cap){
+      timer = saved;
+      if(timer.endAt > Date.now()){ loop(); }
+      else if(timer.mode === 'break'){ completeBreak(); }
+      else { completePomodoro(); }
+    } else {
+      clearTimerStore();
+    }
+  } else if(saved && !saved.running && (saved.mode === 'break' || saved.remain < POMO_MS)){
+    timer = saved;
+  }
+
+  buildPetals();
+  buildClockTicks();
+  renderClock();
+  setInterval(renderClock, 250);
+
+  bind();
+  renderAll();
+
+  // 字体加载完成后高度会变，再对齐一次
+  setTimeout(alignClock, 80);
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(function(){ alignClock(); }).catch(function(){});
+  }
+}
+
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+
+})();
+</script>
+
+<script>
+/* PWA：装到桌面后离线可用。本地双击打开时不会注册 */
+(function(){
+  var ok = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  if(!ok || !('serviceWorker' in navigator)) return;
+  addEventListener('load', function(){
+    navigator.serviceWorker.register('./sw.js').catch(function(){});
+  });
+})();
+</script>
+</body>
+</html>

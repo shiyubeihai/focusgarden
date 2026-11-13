@@ -1,13 +1,14 @@
 # 专注花园 focusgarden
 
-两个单文件的专注计时应用，可以直接双击打开，也可以装到桌面当应用用。
+三个单文件的专注计时应用，可以直接双击打开，也可以装到桌面当应用用。
 
 | 应用 | 文件 | 单轮时长 | 每天上限 |
 |---|---|---|---|
 | 快乐番茄 | `happy-tomato.html` | 25 分钟 | 15 格 |
-| 一刻花开 | `quarterbloom.html` | 15 分钟 | 15 朵 |
+| 一刻花开 | `quarterbloom.html` | 15 分钟 | 20 朵 |
+| 惜时 | `xishi.html` | 20 分钟 | 20 朵（52 周为一期） |
 
-数据都存在浏览器本机（localStorage），两个应用各记各的，互不影响。
+数据都存在浏览器本机（localStorage），三个应用各记各的，互不影响。
 
 ## 目录
 
@@ -16,20 +17,19 @@ focusgarden/
 ├── index.html                    入口页
 ├── happy-tomato.html             快乐番茄
 ├── quarterbloom.html             一刻花开
+├── xishi.html                    惜时
 ├── manifest-tomato.webmanifest   番茄的应用清单
 ├── manifest-bloom.webmanifest    花开的应用清单
+├── manifest-xishi.webmanifest    惜时的应用清单
 ├── sw.js                         service worker（离线缓存）
 └── icons/                        图标，180 / 192 / 512 三档
 ```
 
 ## 部署
 
-1. 在 GitHub 新建仓库 `focusgarden`，公开
-2. 把本目录所有文件推到 `main` 分支
-3. 仓库 Settings → Pages → Source 选 `Deploy from a branch`，分支 `main`、目录 `/ (root)`
-4. 等一分钟，访问 `https://<用户名>.github.io/focusgarden/`
+访问 `https://shiyubeihai.github.io/focusgarden/`
 
-手机上打开后，用浏览器菜单里的「安装应用」或「添加到主屏幕」，两个应用会各自生成一个图标。
+手机上打开后，用浏览器菜单里的「安装应用」或「添加到主屏幕」，三个应用会各自生成一个图标。
 
 ## 改了内容之后
 
